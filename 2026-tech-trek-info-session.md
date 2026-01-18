@@ -1,8 +1,9 @@
 2026 01 15  
 TECH TREK INFO SESSION  
 (BYU CS)
----
+
 ![Application QR Code](./2026-tech-trek-application-qr-code.jpeg)
+
 ---
 
 # Agenda
