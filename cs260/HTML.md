@@ -39,4 +39,24 @@
 
 <br>
 
-Copied from the [CS260 HTML instruction page.](https://github.com/webprogramming260/webprogramming/blob/main/instruction/html/introduction/introduction.md#common-elements)
+Copied from the [CS260 HTML introduction page.](https://github.com/webprogramming260/webprogramming/blob/main/instruction/html/introduction/introduction.md#common-elements)
+
+# Special characters
+
+| Character | Entity      |
+| --------- | ----------- |
+| &amp;     | `&amp;`     |
+| <         | `&lt;`      |
+| >         | `&gt;`      |
+| "         | `&quot;`    |
+| '         | `&apos;`    |
+| &#128512; | `&#128512;` |
+
+Copied from the [CS260 HTML introduction page.](| Character | Entity      |
+| --------- | ----------- |
+| &amp;     | `&amp;`     |
+| <         | `&lt;`      |
+| >         | `&gt;`      |
+| "         | `&quot;`    |
+| '         | `&apos;`    |
+| &#128512; | `&#128512;` |)
