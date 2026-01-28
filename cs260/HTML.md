@@ -1,4 +1,6 @@
-# Common HTML Elements
+# HTMl
+
+## Common HTML Elements
 
 | element   | meaning                                                                |
 | --------- | ---------------------------------------------------------------------- |
@@ -41,7 +43,9 @@
 
 Copied from the [CS260 HTML introduction page.](https://github.com/webprogramming260/webprogramming/blob/main/instruction/html/introduction/introduction.md#common-elements)
 
-# Special characters
+## Special characters
+
+
 
 | Character | Entity      |
 | --------- | ----------- |
@@ -52,11 +56,33 @@ Copied from the [CS260 HTML introduction page.](https://github.com/webprogrammin
 | '         | `&apos;`    |
 | &#128512; | `&#128512;` |
 
-Copied from the [CS260 HTML introduction page.](| Character | Entity      |
-| --------- | ----------- |
-| &amp;     | `&amp;`     |
-| <         | `&lt;`      |
-| >         | `&gt;`      |
-| "         | `&quot;`    |
-| '         | `&apos;`    |
-| &#128512; | `&#128512;` |)
+Copied from the [CS260 HTML introduction page.](|)
+
+## Common Attributes
+
+- `id`: unique identifier for an element.
+- `class`: classifies element into a named group ("class") of elements.
+
+## Hyperlinks
+
+```html
+<a href="LINK">TEXT</a>
+```
+
+## Images
+
+```html
+<img src="LINK" alt="ALT TEXT">
+```
+
+You can optionally add `width` and `height` attributes to specify the image's dimensions.
+
+### Hyperlinks to images
+
+```html
+<a href="https://www.w3schools.com">
+  <img src="w3html.gif" alt="W3Schools.com" width="100" height="132">
+</a>
+```
+
+(Thanks to [GeeksForGeeks for this one :D](https://www.w3schools.com/tags/tag_img.asp#:~:text=Try%20it%20Yourself%20%C2%BB-,Example,-How%20to%20add))
