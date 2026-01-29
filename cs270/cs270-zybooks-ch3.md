@@ -501,7 +501,7 @@ gnb_plot = RocCurveDisplay.from_estimator(
 plt.show()
 ```
 
-#### Regression models: Prediction error plot & Partial dependency plot
+#### Regression models: Prediction error plot & Partial dependence plot
 
 ```py
 # imports (idk if they're all used in the excerpt I've included)
@@ -623,3 +623,62 @@ kappa = metrics.cohen_kappa_score(y_true, logPredY)
 print("Kappa:", round(kappa, 3))
 ```
 
+# 3.7: LAB
+
+TODO: copy the instructions here.
+
+```py
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+
+from sklearn.linear_model import LinearRegression
+from sklearn.inspection import PartialDependenceDisplay
+from sklearn import metrics
+
+# Load diamonds sample into dataframe
+diamonds = pd.read_csv("diamonds.csv").sample(n=50, random_state=42)
+
+# Get user-input features
+feature1 = input()
+feature2 = input()
+
+# Define input and output features
+X = diamonds[[feature1, feature2]]
+y = diamonds["price"]
+
+y_true = np.ravel(y)
+# Initialize and fit a multiple linear regression model
+model = LinearRegression()
+model.fit(X, y_true)
+
+# Use the model to predict the classification of instances in X
+mlrPredY = model.predict(X)
+
+# Compute prediction errors
+mlrPredError = y_true - mlrPredY
+
+# Plot prediction errors vs predicted values. Label the x-axis as 'Predicted' and the y-axis as 'Prediction error'
+scatterfig = plt.figure()
+plt.scatter(mlrPredY, mlrPredError)
+plt.xlabel('Predicted')
+plt.ylabel('Prediction error')
+
+# Add dashed line at y=0
+plt.plot([min(mlrPredY)-2, max(mlrPredY)+2], [0,0], linestyle='dashed', color='black')
+scatterfig.savefig("predictionError.png")
+# plt.show()
+
+# Generate a partial dependence display for both input features
+display = PartialDependenceDisplay.from_estimator(
+    model, X, features=[0,1], feature_names=[feature1, feature2]
+)
+display.figure_.savefig("partialDependence.png")
+# plt.show()
+
+
+
+# Calculate mean absolute error for the model
+mae = metrics.mean_absolute_error(y, mlrPredY)
+print("MAE:", round(mae, 3))
+```
