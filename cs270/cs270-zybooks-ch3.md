@@ -113,3 +113,75 @@ Interpreting hinge loss looks a bit different:
     - Array of predicted decisions (`pred_discision`)
   - [documentation](https://scikit-learn.org/stable/modules/generated/sklearn.metrics.hinge_loss.html)
 
+# 3.2: Classification metrics
+
+## Model evaluation & Classification metrics
+
+> **Model evaluation** is the process of USING METRICS to assess how well a supervised ML model's PREDICTIONS MATCH OBSERVED VALUES.
+
+> A **classification metric** quantifies the PREDICTIVE PERFORMANCE of a classifier (model?) by COMPARING the model's PREDICTED CLASSES to the OBSERVED CLASSES.
+
+- Classification metrics are used to evaluated and compare fitted classification models.
+- LARGE VALUES for classification metrics => BETTER PREDICTIONS.
+
+
+COMMON CLASSIFICATION METRICS:
+
+- Accuracy
+- Precision
+- Recall
+- Confusion Matrices
+- Kappa
+
+(^ The next sections go over these.)
+
+## Confusion Matrix
+
+In binary classifications, we can consider outcomes to be POSITIVE (me likey) or NEGATIVE (me no likey). Furthermore, a classifer's prediction can either be correct (TRUE) or incorrect (FALSE). A confusion matrix compares predicted classifications against observed classifications in a table (seen below in my bad drawing).
+
+![Confusion matrix](cs270-zybooks-3.2-confusion-matrix.png)
+
+More specifically, each cell is the *number* of true negatives (TN), num of true positives (TP), num of false negatives (FN), and num of false positives (FP).
+
+$$\begin{bmatrix}
+TN & FP \\
+FN & TP \\
+\end{bmatrix}$$
+
+## Accuracy, Precision, Recall
+
+- Accuracy, precision, and recall are all NON-NEGATIVE values ranging from `0` to `1`.
+- ^ HIGHER VALUE => BETTER PERFORMANCE.
+
+### Accuracy
+
+> **Accuracy** is the proportion of CORRECT PREDICTIONS.  
+> i.e., ***"How many did you get right?"***
+
+$$\text{Accuracy} = \frac{\text{\# corect predictions}}{\text{\# total predictions}} = \frac{TP+TN}{TP+TN+FP+FN}$$
+
+Accuracy is a simple measure of overall performance, but accuracy can be misleading when the # of observed instances in each class is imbalanced, so we oft combine it with precision and recall.
+
+### Precision
+
+> **Precision** is the proportion of CORRECT *POSITIVE* PREDICTIONS.  
+> i.e., ***"How many of your positives did you get right?"***
+
+$$\text{Precision} = \frac{\text{\# corect positive predictions}}{\text{\# positive predictions}} = \frac{TP}{TP+FP}$$
+
+### Recall
+
+> **Recall** is the proportion of CORRECTLY PREDICTED POSITIVE *INSTANCES*.  
+> i.e., ***"How many positives did you catch?"***
+
+$$\text{Recall} = \frac{\text{\# corect positive predictions}}{\text{\# positive instances}} = \frac{TP}{TP+FN}$$
+
+(Because if it's a *false* negative, then it was a positive instance.)
+
+### Precision vs. recall
+
+> Precision measures the accuracy of the positive predictions, and recall measures the classifier's ability to predict all positive instances.
+
+## $F_1$-score and $F_\beta$-score
+
+$F_1$ and $F_\beta$ are metrics that combine precision and recall into one measure.
