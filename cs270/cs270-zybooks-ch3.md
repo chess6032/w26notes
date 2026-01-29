@@ -405,11 +405,159 @@ $$\bar {\hat y}_{x_j=a}=\frac 1 n \sum^n_{i=1} \hat y_{i ,x_j = a}$$
 
 ### Plotting classification models
 
-TODO: do this.
+Plots for evaluating classif models are generated using funcs from the `sklearn.metrics` module and the `mlxtend` library.
+
+- Decision boundary plots: `plot_decision_regions(X, y, clf)` from `mlxtend`.
+  - `X` is an arr of vals for the input feature(s)
+  - `y` is an arr of output feature vals
+  - `clf` is a fitted classifier
+  - [plot_decision_regions() documentation](https://rasbt.github.io/mlxtend/)
+- Plotting a confusion mtx: `ConfusionMatrixDisplay()` from `metrics`. Plotting an ROC curve: `RocCurveDisplay()` from `metrics`.
+  - It's common practice to use class method `from_estimator(estimator, X, y)` with these functions.
+    - `estimator` is a fitted classifier.
+    - `X` is an arr of vals for input features.
+    - `y` is an arr of output feature vals.
+  - [RocCurveDisplay documentation](https://scikit-learn.org/stable/modules/generated/sklearn.metrics.RocCurveDisplay.html)
+  - [ConfusionMatrixDisplay documentation](https://scikit-learn.org/stable/modules/generated/sklearn.metrics.ConfusionMatrixDisplay.html)
+
 
 ### Plotting regression models
 
-TODO: do this
+PLots for evaluating regression models are generated in Python via scikit-learn funcs. 
+
+- Partial dependence plots: `PartialDependenceDisplay()` from `sklearn.inspection`.
+  - It's common practice to use `from_estimator(estimator, X, features)` w/ this function.
+    - `estimator` is a fitted classifier.
+    - `X` is an arr of vals for input features.
+    - `features` is a list of input features for which to generate the partical dependency plots.
+  - [documentation](https://scikit-learn.org/stable/modules/generated/sklearn.inspection.PartialDependenceDisplay.html)
+
+(When you're working w/ predictions, remember that a model's predicted values are obtained via `model.predict()`.)
+
+### Examples
+
+#### Classification models: Confusion mtx, Decision boundary, & ROC curve
+
+```py
+# imports (I just copied & pasted this from the file, idk how many of these are used in the excerpt I have here)
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+
+from sklearn.preprocessing import StandardScaler
+from sklearn.naive_bayes import GaussianNB
+from sklearn.discriminant_analysis import LinearDiscriminantAnalysis
+from sklearn.neighbors import KNeighborsClassifier
+from sklearn.linear_model import LogisticRegression
+
+from sklearn.metrics import ConfusionMatrixDisplay
+from sklearn.metrics import RocCurveDisplay
+from sklearn.metrics import roc_auc_score
+from mlxtend.plotting import plot_decision_regions
+
+import warnings
+warnings.simplefilter("ignore")
+
+# Load the diabetes dataset
+diabetes = pd.read_csv("diabetesNHANES.csv")
+
+# Take a random sample of 100 rows
+df = diabetes.sample(n=100, random_state=1234)
+df.head()
+
+# Define input features and output features
+X = df[["glucose", "cholesterol"]]
+y = df[["outcome"]]
+
+# Scale the input features
+scaler = StandardScaler()
+X = scaler.fit_transform(X)
+
+# Initialize and fit a LDA model
+ldaModel = LinearDiscriminantAnalysis()
+ldaModel.fit(X, np.ravel(y))
+
+# Confusion matrix plot for ldaModel
+ConfusionMatrixDisplay.from_estimator(ldaModel, X, y)
+plt.show()
+
+# Decision boundary plot for ldaModel
+plot_decision_regions(X, np.ravel(y), clf=ldaModel)
+plt.show()
+
+
+# Initialize and fit a Gaussian naive Bayes model
+gnbModel = GaussianNB()
+gnbModel.fit(X, np.ravel(y))
+
+# ROC curves for both ldaModel and gnbModel:
+
+# ROC curve for ldaModel
+lda_plot = RocCurveDisplay.from_estimator(ldaModel, X, y, linewidth=3)
+# ROC curve for gnbModel, added to lda_plot by adding ax=lda_plot.ax_
+gnb_plot = RocCurveDisplay.from_estimator(
+    gnbModel, X, y, ax=lda_plot.ax_, linewidth=1.5
+)
+plt.show()
+```
+
+#### Regression models: Prediction error plot & Partial dependency plot
+
+```py
+# imports (idk if they're all used in the excerpt I've included)
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+
+from sklearn.linear_model import LinearRegression
+from sklearn.neighbors import KNeighborsRegressor
+from sklearn.preprocessing import StandardScaler
+from sklearn.inspection import PartialDependenceDisplay
+
+# Load the diabetes dataset
+diabetes = pd.read_csv("diabetesNHANES.csv")
+
+# take a random sample of 100 rows
+df = diabetes.sample(n=100, random_state=4321)
+
+# Define input features and output features
+X = df[["glucose", "cholesterol", "systolic"]]
+y = df[["insulin"]]
+
+# Scale the input features
+scaler = StandardScaler()
+X = scaler.fit_transform(X)
+
+# Initialize and fit a k-nearest neighbors model with k=3
+KNModel = KNeighborsRegressor(n_neighbors=3)
+KNModel.fit(X, y)
+
+# Generate a prediction error plot:
+
+# - Get predictions
+KNPred = KNModel.predict(X)
+
+# - Compute prediction errors
+KNPredError = y - KNPred
+
+# - Plot prediction errors vs predicted values
+fig = plt.figure()
+plt.scatter(KNPred, KNPredError)
+plt.xlabel("Predicted")
+plt.ylabel("Prediction error")
+
+# - Add dashed line at y=0
+plt.plot([min(KNPred) - 2, max(KNPred) + 2], [0, 0], linestyle="dashed", color="black")
+plt.show()
+
+# Generate a parial dependence display for all three input features
+# Add feature_names parameter to specify the plot labels
+PartialDependenceDisplay.from_estimator(
+    KNModel, X, features=[0, 1, 2], feature_names=["Glucose", "Cholesterol", "Systolic"]
+)
+plt.show()
+```
+
 
 # 3.4 & 3.5
 
@@ -418,4 +566,60 @@ lol I sped through these to get to the labs.
 TODO: come back to these.
 
 # 3.6: LAB
+
+TODO: copy lab instructions here.
+
+```py
+import numpy as np
+import pandas as pd
+
+from sklearn import metrics
+from sklearn.preprocessing import StandardScaler
+from sklearn.linear_model import LogisticRegression
+
+# Silence warning from sklearn
+import warnings
+warnings.simplefilter("ignore")
+
+# Input the random state
+rand = int(input())
+
+# Load sample set by a user-defined random state into a dataframe. 
+NBA = pd.read_csv("nbaallelo_log.csv").sample(n=500, random_state=rand)
+
+# Create binary feature for game_result with 0 for L and 1 for W
+NBA["win"] = NBA["game_result"].replace(to_replace = ["L","W"], value = [int(0), int(1)])
+
+# Store relevant columns as variables
+X = NBA[["elo_i"]]
+y = NBA[["win"]]
+
+# Build logistic model with default parameters, fit to X and y
+model = LogisticRegression()
+y_true = np.ravel(y) # IMPORTANT: the input to all the metric functions MUST be arrays
+model.fit(X, y_true)
+
+# Use the model to predict the classification of instances in X
+logPredY = model.predict(X)
+
+# Calculate the confusion matrix for the model
+confMatrix = metrics.confusion_matrix(y_true, logPredY)
+print("Confusion matrix:\n", confMatrix)
+
+# Calculate the accuracy for the model
+accuracy = metrics.accuracy_score(y_true, logPredY)
+print("Accuracy:", round(accuracy,3))
+
+# Calculate the precision for the model
+precision = metrics.precision_score(y_true, logPredY)
+print("Precision:", round(precision,3))
+
+# Calculate the recall for the model
+recall = metrics.recall_score(y_true, logPredY)
+print("Recall:", round(recall, 3))
+
+# Calculate kappa for the model
+kappa = metrics.cohen_kappa_score(y_true, logPredY)
+print("Kappa:", round(kappa, 3))
+```
 
