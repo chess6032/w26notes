@@ -1,3 +1,5 @@
+TODO: Go back through 3.3 more thoroughly.
+
 # 3.1: Loss functions for classification
 
 ## Loss functions
@@ -372,3 +374,48 @@ recall = metrics.recall_score(np.ravel(y), predNB)
 print("GaussianNB model precision:", round(precision, 3))
 print("GaussianNB model recall:", round(recall, 3))
 ```
+
+# 3.3: Evaluating models w/ plots
+
+## Plot types
+
+### Plots for classification & regression models
+
+- Plots for classification models:
+  - **Decision boundary plot**
+    - This is the one that cuts up the graph into boundaries.
+  - **ROC curve plot**
+    - This one looks like a staircase.
+- Plots for regression models:
+  - **Prediction error plot**
+  - **Partial dependence plot**
+
+![Types of plots for classification & regression models](cs270-zybooks-3.3-plot-types.png)
+
+### Prediction error plot (i.e. risidual plot)
+
+* $y_i - \hat y_i$
+* Funnel shape.
+
+### Partial dependence plot
+
+$$\bar {\hat y}_{x_j=a}=\frac 1 n \sum^n_{i=1} \hat y_{i ,x_j = a}$$
+
+## Plotting in Python
+
+### Plotting classification models
+
+TODO: do this.
+
+### Plotting regression models
+
+TODO: do this
+
+# 3.4 & 3.5
+
+lol I sped through these to get to the labs.
+
+TODO: come back to these.
+
+# 3.6: LAB
+
