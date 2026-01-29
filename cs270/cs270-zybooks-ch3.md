@@ -160,7 +160,7 @@ FN & TP \\
 > **Accuracy** is the proportion of CORRECT PREDICTIONS.  
 > i.e., ***"How many did you get right?"***
 
-$$\text{Accuracy} = \frac{\text{\# corect predictions}}{\text{\# total predictions}} = \frac{TP+TN}{TP+TN+FP+FN}$$
+$$\text{Accuracy} = \frac{\text{num corect predictions}}{\text{num total predictions}} = \frac{TP+TN}{TP+TN+FP+FN}$$
 
 Accuracy is a simple measure of overall performance, but accuracy can be misleading when the # of observed instances in each class is imbalanced, so we oft combine it with precision and recall.
 
@@ -169,14 +169,14 @@ Accuracy is a simple measure of overall performance, but accuracy can be mislead
 > **Precision** is the proportion of CORRECT *POSITIVE* PREDICTIONS.  
 > i.e., ***"How many of your positives did you get right?"***
 
-$$\text{Precision} = \frac{\text{\# corect positive predictions}}{\text{\# positive predictions}} = \frac{TP}{TP+FP}$$
+$$\text{Precision} = \frac{\text{num corect positive predictions}}{\text{num positive predictions}} = \frac{TP}{TP+FP}$$
 
 ### Recall
 
 > **Recall** is the proportion of CORRECTLY PREDICTED POSITIVE *INSTANCES*.  
 > i.e., ***"How many positives did you catch?"***
 
-$$\text{Recall} = \frac{\text{\# corect positive predictions}}{\text{\# positive instances}} = \frac{TP}{TP+FN}$$
+$$\text{Recall} = \frac{\text{num corect positive predictions}}{\text{num positive instances}} = \frac{TP}{TP+FN}$$
 
 (Because if it's a *false* negative, then it was a positive instance.)
 
@@ -230,15 +230,15 @@ $$\kappa = \frac{\text{Acc}_{obs}-\text{Acc}_{exp}}{1-\text{Acc}_{exp}}$$
 
 The expected accuracy of the model classifier is calculated as thus:
 
-$$\text{Acc}_{exp}=\frac{\text{expected \# of correct predictions}}{\text{\# of total predictions}}$$
+$$\text{Acc}_{exp}=\frac{\text{expected num of correct predictions}}{\text{num of total predictions}}$$
 
 A random chance classifier based on a model will have the same # of total class predictions as the model, but assigns the predictions at random to instances. Its accuracy is just calculated like this:
 
-$$\text{Acc}_{exp}=\frac{\text{expected \# of correct predictions from random classification}}{\text{\# of total predictions}}$$
+$$\text{Acc}_{exp}=\frac{\text{expected num of correct predictions from random classification}}{\text{num of total predictions}}$$
 
 For a binary random chance classifier, the expected # of correct predictions from the random classifier is the sum of the expected num of true pos & true negs:
 
-$$\text{expected \# of correct predictions from random classification} = \frac{(FN + TP)(FP + TP) + (TN + FP)(TN + FN)}{TP + TN + FP + FN}$$
+$$\text{expected num of correct predictions from random classification} = \frac{(FN + TP)(FP + TP) + (TN + FP)(TN + FN)}{TP + TN + FP + FN}$$
 
 ## Nonbinary classification metrics
 
