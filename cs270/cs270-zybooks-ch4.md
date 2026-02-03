@@ -287,7 +287,352 @@ print("Test score:", beanResults["test_score"])
 
 # 4.2
 
+## Model selection
 
+**Model selection** is the process of identifying the best of a bunch of fitted models.
+
+Criteria for good models:
+
+- **STRONG PERFORMANCE**. (e.g.: high accuracy, low MSE.)
+- **CONSISTENT PERFORMANCE**. (e.g.: models perform similarly during CV, or across multiple train/val/test splits.)
+  - e.g. a model w/ validation scores ranging from 0.7-0.8 is better tahn a model w/ scores ranging 0.5-0.9.
+- **REASONABLE ASSUMPTIONS**. (e.g.: No model assumptions are seriously violated. (Idk what this means.))
+
+## Model selection w/ CV
+
+CV is useful for model selection bc each potential model is trained across multiple splits (so you're seeing how each performs w/ different data). A good model should have strong performance metrics w/ low variability across ALL CV splits.
+
+STEPS:
+
+1. Define a set of CV splits.
+2. Train and validate all potential models on every split.
+3. Compare performance metrics on the validation sets ("using descriptive statsitics or summary plots").
+
+The same CV splits shouold be used on each model to avoid bias. I.e., performance metrics on different data can't be compared.
+
+### Comparing performance metrics
+
+Look at models' average performances across all folds.
+
+- When a few folds have relatively high or low scores, the MEDIAN should be used to compare models instead of the mean.
+
+### CV params
+
+Param estimates&mdash;e.g. weight in log reg&mdash;depend on train/val/test splits. Models w/ high param variability or skewness may suggest a poor fit to the dataset.
+
+- If a model's param estimates are HIGHLY VARIABLE, then the model may be OVERFITTING to each training set.
+
+## CV Model selection in sklearn
+
+sklearn has `cross_val_score()` and `cross_validate()`, but the former only returns scores while the latter returns a lot more information in addition to scores, so `cross_validate()` is preffered.
+
+For model comparisons to be valid, the same set of CV folds must be used across models. `KFold()` can be used to define a set of CV folds to use as a parameter in `cross_validate()`. Details and params for `KFold()` are listed in its [documentation](https://scikit-learn.org/stable/modules/generated/sklearn.model_selection.KFold.html#sklearn.model_selection.KFold).
+
+### `cross_validate()` returns
+
+`cross_validate()` returns a DICTIONARY. Associated w/ each key is an array where each element corresponds to the result of one CV split. The table below includes the dictionaries keys and a description of what is contained in each element of the associated array.
+
+
+| Key             | Contents of associated array |  
+| --------------- | ---------------------------- |  
+| `"test_score" ` | Validation scores. |  
+| `"train_score"` | Training scores. Only returned if `return_train_score=True` is passed into `cross_validate()`. |  
+| `"fit_time"`    | Time for fitting the estimator. |  
+| `"score_time"`  | Time for scoring the estimator. |  
+| `"estimator"`   | Fitted models. Only returned if `return_estimator=True` is passed into `cross_validate()`. |  
+
+#### Example
+
+```py
+# imports
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
+
+from sklearn.model_selection import train_test_split
+from sklearn.model_selection import cross_validate
+from sklearn.model_selection import KFold
+
+from sklearn.neighbors import KNeighborsClassifier
+from sklearn.linear_model import LogisticRegression
+
+from sklearn.preprocessing import StandardScaler
+
+# read data
+wine = pd.read_csv("wine_sample.csv")
+X = wine[["sulphates", "alcohol"]]
+y = wine[["type"]]
+
+# Create training/testing split
+X_train, X_test, y_train, y_test = train_test_split(
+    X, y, test_size=0.1, random_state=123
+)
+
+# Scale the input features
+scaler = StandardScaler()
+X_train = scaler.fit_transform(X_train)
+X_test = scaler.transform(X_test)
+
+# Define candidate models
+knnModel = KNeighborsClassifier(n_neighbors=5)
+logisticModel = LogisticRegression()
+
+# Define a set of cross-validation folds
+kf = KFold(n_splits=10, random_state=19, shuffle=True)
+
+# Fit k-nearest neighbors with 10-fold cross-validation to the training data
+knnResults = cross_validate(knnModel, X_train, np.ravel(y_train), cv=kf)
+
+knnScores = knnResults["test_score"]
+
+# View accuracy for each fold
+print("k-nearest neighbor scores:", knnScores.round(3))
+
+# Calculate descriptive statistics
+print("Mean:", knnScores.mean().round(3))
+print("SD:", knnScores.std().round(3))
+
+# Logistic model performance on testing
+knnModel.fit(X_train, np.ravel(y_train))
+knnModel.score(X_test, np.ravel(y_test))
+
+# Fit logistic regression with 10-fold cross-validation to the training data
+logisticResults = cross_validate(logisticModel, X_train, np.ravel(y_train), cv=kf)
+
+logisticScores = logisticResults["test_score"]
+
+# View accuracy for each fold
+print("Logistic regression scores:", logisticScores.round(3))
+
+# Calculate descriptive statistics
+print("Mean:", logisticScores.mean().round(3))
+print("SD:", logisticScores.std().round(3))
+
+# Logistic model performance on testing
+logisticModel.fit(X_train, np.ravel(y_train))
+logisticModel.score(X_test, np.ravel(y_test))
+
+# Combine scores from both models into a dataframe
+df = pd.DataFrame({"knn": knnScores, "logistic": logisticScores})
+
+# Boxplot of errors for k-nearest neighbors
+p = sns.boxplot(data=df, y="knn")
+p.set_xlabel("k-nearest neighbors", fontsize=14)
+p.set_ylabel("Cross-validation scores", fontsize=14)
+
+# Boxplot of errors for logistic regression
+p = sns.boxplot(data=df, y="logistic")
+p.set_xlabel("Logistic regression", fontsize=14)
+p.set_ylabel("Cross-validation scores", fontsize=14)
+```
+
+### Final model selection
+
+Model selection identifies the best model type&mdash;but not necessarily the best params of the best model. (e.g. KNN does not have params that must be trained, but log reg does.) 
+
+- Models WITHOUT trained params can be EVALUATED DIRECTLY on the testing set. 
+- Models WITH trained params MUST BE FITTED to the entire training set BEFORE EVALUATING on testing.
+  - Note that while you trained on only part of the training set during CV model selection, when you select your model you fit it to the ENTIRE TRAINING SET before testing.
+    - (This avoids selection bias.)
+  - Do not select the best params from a single CV fold. That introduces (selection?) bias.
+
+### Examples
+
+#### 4.2 Ex 1
+
+Two researchers collected high-resolution images of 13,611 grains of seven varieties of dry beans. Using a computer vision process, 16 features of each bean were extracted.
+
+- Define a set of 10 cross-validation folds with `random_state=35` and `shuffle=True`.
+
+The code provided contains all imports, loads the dataset, creates input and output feature sets, initializes a linear discriminant analysis model and a Gaussian naive Bayes model, fits the models with 10-fold cross validation, and prints the descriptive statistics for each model.
+
+```py
+# Import packages and functions
+import numpy as np
+import pandas as pd
+from sklearn.preprocessing import StandardScaler
+from sklearn.discriminant_analysis import LinearDiscriminantAnalysis
+from sklearn.model_selection import cross_validate
+from sklearn.naive_bayes import GaussianNB
+from sklearn.model_selection import KFold
+
+# Load the dry beans dataset
+beans = pd.read_csv("Dry_Bean_Data.csv")
+
+# Create input and output feature sets
+X = beans[["Extent", "Eccentricity"]]
+y = beans[["Class"]]
+
+# Scale the input features
+scaler = StandardScaler()
+X_scaled = scaler.fit_transform(X)
+
+# Define a set of 10 cross-validation folds
+kf = KFold(n_splits=10, random_state=35, shuffle=True)
+
+# Initialize the linear discriminant analysis model with two components
+LDAmodel = LinearDiscriminantAnalysis(n_components=2)
+
+# Fit linear discriminant analysis model with cross-validation
+LDAresults = cross_validate(LDAmodel, X, np.ravel(y), cv=kf)
+
+beansLDAScores = LDAresults["test_score"]
+
+# View accuracy for each fold
+print("Linear discriminant analysis scores:", beansLDAScores.round(3))
+
+# Calculate descriptive statistics
+print("Mean:", beansLDAScores.mean().round(3))
+print("SD:", beansLDAScores.std().round(3))
+
+# Initialize the Gaussian naive Bayes model
+NBmodel = GaussianNB()
+
+# Fit Gaussian naive Bayes model with 10-fold cross-validation
+NBBeanResults = cross_validate(NBmodel, X, np.ravel(y), cv=kf)
+
+modelNBScores = NBBeanResults["test_score"]
+
+# View accuracy for each fold
+print("Gaussian naive Bayes scores:", modelNBScores.round(3))
+
+# Calculate descriptive statistics
+print("Mean:", modelNBScores.mean().round(3))
+print("SD:", modelNBScores.std().round(3))
+```
+
+#### 4.2 Ex 2
+
+Two researchers collected high-resolution images of 13,611 grains of seven varieties of dry beans. Using a computer vision process, 16 features of each bean were extracted.
+
+- Initialize a linear discriminant analysis model `beansLDAModel` with two components.
+- Fit the model with cross validation, using `kf` as the number of folds.
+
+The code provided contains all imports, loads the dataset, creates input and output feature sets, defines a set of 9 cross-validation folds, initializes a Gaussian naive Bayes model, fits the model with 9-fold cross validation, and prints the descriptive statistics for each model.
+
+```py
+# Import packages and functions
+import warnings
+warnings.simplefilter("ignore")
+import numpy as np
+import pandas as pd
+from sklearn.preprocessing import StandardScaler
+from sklearn.discriminant_analysis import LinearDiscriminantAnalysis
+from sklearn.model_selection import cross_validate
+from sklearn.naive_bayes import GaussianNB
+from sklearn.model_selection import KFold
+
+# Load the dry beans dataset
+beans = pd.read_csv("Dry_Bean_Data.csv")
+
+# Create input and output feature sets
+X = beans[["Eccentricity", "Solidity"]]
+y = beans[["Class"]]
+
+# Scale the input features
+scaler = StandardScaler()
+X_scaled = scaler.fit_transform(X)
+
+# Define a set of 9 cross-validation folds
+kf = KFold(n_splits=9, random_state=25, shuffle=True)
+
+# Initialize the linear discriminant analysis model with two components
+beansLDAModel = LinearDiscriminantAnalysis(n_components=2)
+
+# Fit linear discriminant analysis model with cross-validation
+LDABeanResults = cross_validate(beansLDAModel, X, y, cv=kf)
+
+beansLDAScores = LDABeanResults["test_score"]
+
+# View accuracy for each fold
+print("Linear discriminant analysis scores:", beansLDAScores.round(3))
+
+# Calculate descriptive statistics
+print("Mean:", beansLDAScores.mean().round(3))
+print("SD:", beansLDAScores.std().round(3))
+
+# Initialize the Gaussian naive Bayes model
+beansNB = GaussianNB()
+
+# Fit Gaussian naive Bayes model with cross-validation
+modelNBResults = cross_validate(beansNB, X, np.ravel(y), cv=kf)
+
+NBBeanScores = modelNBResults["test_score"]
+
+# View accuracy for each fold
+print("Gaussian naive Bayes scores:", NBBeanScores.round(3))
+
+# Calculate descriptive statistics
+print("Mean:", NBBeanScores.mean().round(3))
+print("SD:", NBBeanScores.std().round(3))
+```
+
+#### 4.2 Ex 3
+
+Two researchers collected high-resolution images of 13,611 grains of seven varieties of dry beans. Using a computer vision process, 16 features of each bean were extracted.
+
+- Initialize a Gaussian naive Bayes model `NBmodel`.
+- Fit the model with cross validation, using `kf` as the number of folds.
+
+The code provided contains all imports, loads the dataset, creates input and output feature sets, defines a set of 5 cross-validation folds, initializes a linear discriminant analysis model, fits the model with 5-fold cross validation, and prints the descriptive statistics for each model.
+
+```py
+# Import packages and functions
+import warnings
+warnings.simplefilter("ignore")
+import numpy as np
+import pandas as pd
+from sklearn.preprocessing import StandardScaler
+from sklearn.discriminant_analysis import LinearDiscriminantAnalysis
+from sklearn.model_selection import cross_validate
+from sklearn.naive_bayes import GaussianNB
+from sklearn.model_selection import KFold
+
+# Load the dry beans dataset
+beans = pd.read_csv("Dry_Bean_Data.csv")
+
+# Create input and output feature sets
+X = beans[["Eccentricity", "Compactness"]]
+y = beans[["Class"]]
+
+# Scale the input features
+scaler = StandardScaler()
+X_scaled = scaler.fit_transform(X)
+
+# Define a set of 5 cross-validation folds
+kf = KFold(n_splits=5, random_state=12, shuffle=True)
+
+# Initialize the linear discriminant analysis model with two components
+beansLDA = LinearDiscriminantAnalysis(n_components=2)
+
+# Fit linear discriminant analysis model with cross-validation
+modelLDAResults = cross_validate(beansLDA, X, np.ravel(y), cv=kf)
+
+modelLDAScores = modelLDAResults["test_score"]
+
+# View accuracy for each fold
+print("Linear discriminant analysis scores:", modelLDAScores.round(3))
+
+# Calculate descriptive statistics
+print("Mean:", modelLDAScores.mean().round(3))
+print("SD:", modelLDAScores.std().round(3))
+
+# Initialize the Gaussian naive Bayes model
+NBmodel = GaussianNB()
+
+# Fit Gaussian naive Bayes model with cross-validation
+NBBeanResults = cross_validate(NBmodel, X, y, cv=kf)
+
+beansNBScores = NBBeanResults["test_score"]
+
+# View accuracy for each fold
+print("Gaussian naive Bayes scores:", beansNBScores.round(3))
+
+# Calculate descriptive statistics
+print("Mean:", beansNBScores.mean().round(3))
+print("SD:", beansNBScores.std().round(3))
+```
 
 # 4.3
 
