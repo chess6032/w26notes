@@ -636,8 +636,352 @@ print("SD:", beansNBScores.std().round(3))
 
 # 4.3
 
+## Model tuning
+
+- **HYPERPARAMETER**: *User-defined* setting in a ML NOT estimated during model fitting. 
+  - (e.g. $k$ in KNN or $\alpha$ in ridge regression.)
+- **MODEL TUNING**: the process of SELECTING THE BEST HYPERPARAMS for a model USING CV.
+
+Not all ML models take hyperparams, so therefore not all models require model tuning.
+
+### Tuning grids
+
+- **TUNING GRID**: LIST OF HYPERPARAM VALS to evaluate during model tuning.
+  - Typically ~2-10 vals for each hyperparam.
+  - Vals may be equally spaced, randomly selected, or chosen based on context.
+
+When MORE THAN ONE HYPERPARAM exists, ALL *COMBINATIONS* ARE TESTED. Therefore, tuning grids w/ too many vals or too many hyperparams will be computationally intensive.
+
+- **MULTISTAGE MODEL TUNING**: the process of using MULTIPLE STAGES to find the optimal hyperparam: At the end of each stage, you REFINE THE TUNING GRID and USE A NEW SET OF CV FOLDS TO EVALUATE the refined grid.
+  - If a precise hyperparam is required, multistage tuning should be used.
+
+### Selecting optimal hyperparam
+
+An "optimal hyperparam" is a hyperparam that performs well in CV. Often, no single optimal hyperparam exists, and several hyperparams may be acceptable.
+
+## Model tuning w/ tuning grids in sklearn
+
+`GridSearchCV()` trains & evaluates models over a hyperparam grid. ([Documentation](https://scikit-learn.org/stable/modules/generated/sklearn.model_selection.GridSearchCV.html))
+
+If specific hyperparam values are unknown, `RandomizedSearchCV(estimator, param_distributions)` samples hyperparams from a given probability distribution (`param_distributions`). ([Documentation](https://scikit-learn.org/stable/modules/generated/sklearn.model_selection.RandomizedSearchCV.html#sklearn.model_selection.RandomizedSearchCV))
+
+### `GridSearchCV()` params
+
+| Param        | Default | Description                                                                                                                                           |  
+| ------------ | ------- | ----------------------------------------------------------------------------------------------------------------------------------------------------- |  
+| `estimator`  | NA      | SKLEARN MODEL. Can be passed as an initialized model or the model function. (e.g. `estimator=KNeighborsClassifier()`.)                                |  
+| `param_grid` | NA      | DICTIONARY containing **hyperparam names & vals**.                                                                                                    |  
+| `cv`         | 5       | INTEGER for the **number of CV folds**, or a set of predefined CV folds.                                                                              |  
+| `verbose`    | 0       | INTEGER specifying **how much info to print to the console** while fitting models. Possible vals range from 0-4, w/ higher vals printing more detail. |  
+| `refit`      | `True`  | BOOL. Setting `refit=True` **re-trains the model** using the best hyperparams.                                                                        |  
+
+### `GridSearchCV()` results
+
+After completing the grid search:
+
+- Results are stored as a DICTIONARY in the attribute `.cv_results_`.
+- `.predict()` and `.score()` will only return results for the BEST hyperparams.
+
+### Example
+
+```py
+# imports
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
+
+from sklearn.model_selection import train_test_split
+from sklearn.model_selection import GridSearchCV
+
+from sklearn.neighbors import KNeighborsClassifier
+
+from sklearn.preprocessing import StandardScaler
+
+# read data
+wine = pd.read_csv("wine_sample.csv")
+
+X = wine[["sulphates", "alcohol"]]
+y = wine[["type"]]
+
+# Create training/testing split
+X_train, X_test, y_train, y_test = train_test_split(
+    X, y, test_size=0.1, random_state=123
+)
+
+# Scale the input features
+scaler = StandardScaler()
+X_train = scaler.fit_transform(X_train)
+X_test = scaler.transform(X_test)
+
+# Initialize k-nearest neighbors model
+knnModel = KNeighborsClassifier()
+
+# Create tuning grid
+k = {"n_neighbors": [3, 5, 7, 9, 11]}
+
+# Initialize tuning grid and fit to training data
+knnTuning = GridSearchCV(knnModel, k)
+knnTuning.fit(X_train, np.ravel(y_train))
+
+# All available results are stored here:
+knnTuning.cv_results_
+
+# Mean testing score for each k and best model
+print("Mean testing scores:", knnTuning.cv_results_["mean_test_score"]) # mean validation scores for each hyperparam across CV iterations
+print("Best estimator:", knnTuning.best_estimator_)
+```
+
+## Validation Curves
+
+- **VALIDATION CURVE**: Plot the mean CV scores for each hyperparam val that was tested in model tuning.
+  - Useful for detecting OVERFITTING: Overfitted hyperparams will have HIGH TRAINING SCORES & LOW VALIDATION SCORES.
+    - THE BIGGER THE GAP BTWN TRAINING & VALIDATION SCORES, THE MORE OVERFITTED THE MODEL IS.
+  - Optimal hyperparams will perform well on training AND validation sets.
+
+## Validation curves in sklearn
+
+`validation_curve()` implements grid search CV for a sklearn model on a single hyperparam.
+It returns TRAINING & VALIDATION SCORES in a FORMAT THAT'S NICE FOR PLOTTING.
+
+### `validation_curve()` params
+
+| Param         | Default | Description |  
+| ------------- | ------- | ----------- |  
+| `estimator`   | NA      | MODEL FUNCTION. Sets the model to use for CV. (e.g. `estimator=KNeighborsClassifier()`) |  
+| `param_name`  | NA      | STRING. Sets the param name for the specified function. (e.g. `param_name="n_neighbors"`) |  
+| `param_range` | NA      | ARRAY. Contains param values to test. |  
+| `cv`          | 5       | INTEGER for the number of CV folds, or a set of predefined CV folds. |  
+| `verbose`     | 0       | INTEGER specifying how much info to print to console during model fitting. May be btwn 0-4, w/ higher vals printing more detail. |  
+
+### `validation_curve()` returns
+
+`validation_curve()` returns a TUPLE OF ARRAYS: the first item in the tuple contains the training scores, and the second contains the test scores.
+
+### Example
+
+```py
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
+
+from sklearn.model_selection import train_test_split
+from sklearn.model_selection import validation_curve
+
+from sklearn.neighbors import KNeighborsClassifier
+
+from sklearn.preprocessing import StandardScaler
+
+wine = pd.read_csv("wine_sample.csv")
+X = wine[["sulphates", "alcohol"]]
+y = wine[["type"]]
+
+# Create training/testing split
+X_train, X_test, y_train, y_test = train_test_split(
+    X, y, test_size=0.1, random_state=123
+)
+
+# Scale the input features
+scaler = StandardScaler()
+X_train = scaler.fit_transform(X_train)
+X_test = scaler.transform(X_test)
+
+# Apply 5-fold cross-validation over tuning grid using validation_curve
+k = [3, 5, 7, 9, 11]
+train_scores, test_scores = validation_curve(
+    KNeighborsClassifier(),
+    X_train,
+    np.ravel(y_train),
+    param_range=k,
+    param_name="n_neighbors",
+    cv=5,
+)
+
+# Calculate mean and SD for training and testing
+train_scores_mean = np.mean(train_scores, axis=1)
+train_scores_std = np.std(train_scores, axis=1)
+test_scores_mean = np.mean(test_scores, axis=1)
+test_scores_std = np.std(test_scores, axis=1)
+
+# Plot cross-validation results on training/validation for each parameter value
+sns.lineplot(x=k, y=train_scores_mean, label="Training", color="#1f77b4")
+sns.lineplot(x=k, y=test_scores_mean, label="Validation", color="#ff7f0e")
+plt.fill_between(
+    k,
+    train_scores_mean - train_scores_std,
+    train_scores_mean + train_scores_std,
+    alpha=0.1,
+    color="#1f77b4",
+)
+plt.fill_between(
+    k,
+    test_scores_mean - test_scores_std,
+    test_scores_mean + test_scores_std,
+    alpha=0.1,
+    color="#ff7f0e",
+)
+
+plt.xlabel("k", fontsize=16)
+plt.ylabel("Score", fontsize=16)
+```
+
+## Examples
+
+### 4.3 Ex. 1
+
+Two researchers collected high-resolution images of 13,611 grains of seven varieties of dry beans. Using a computer vision process, 16 features of each bean were extracted.
+
+- Create a tuning grid for cross validation tuning for k-nearest neighbors classification parameters. Use the values $k$ = 2, 9, 10, 11.
+
+The code provided contains all imports, loads the dataset, creates input and output feature sets, splits the data into training and testing sets, initializes a k-nearest neighbor model, initializes and fits a tuning grid to the training data, and prints the results.
+
+```py
+# Import packages and functions
+import numpy as np
+import pandas as pd
+from sklearn.preprocessing import StandardScaler
+from sklearn.model_selection import train_test_split
+from sklearn.model_selection import GridSearchCV
+from sklearn.neighbors import KNeighborsClassifier
+
+# Load the dry beans dataset
+beans = pd.read_csv("Dry_Bean_Data.csv")
+
+# Create input and output feature sets
+X = beans[["EquivDiameter", "roundness", "Eccentricity"]]
+y = beans[["Class"]]
+
+# Create training/testing split
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=123)
+
+# Scale the input features
+scaler = StandardScaler()
+X_train = scaler.fit_transform(X_train)
+X_test = scaler.transform(X_test)
+
+# Initialize k-nearest neighbors model
+knnModel = KNeighborsClassifier()
+
+# --------------------------------------------
+# Create tuning grid
+k = {"n_neighbors": [2, 9, 10, 11]}
+# --------------------------------------------
+
+# Initialize tuning grid and fit to training data
+knnTuning = GridSearchCV(knnModel, k)
+knnTuning.fit(X_train, np.ravel(y_train))
+
+# Print mean testing scores
+print("Mean testing scores:", knnTuning.cv_results_["mean_test_score"])
+```
+
+### 4.3 Ex. 2
+
+Two researchers collected high-resolution images of 13,611 grains of seven varieties of dry beans. Using a computer vision process, 16 features of each bean were extracted.
+
+- Initialize a tuning grid `beanGrid` for 6-fold cross validation for a k-nearest neighbors model, with the parameter `param_grid` set to `k`.
+- Fit the tuning grid to the training data.
+
+The code provided contains all imports, loads the dataset, creates input and output feature sets, splits the data into training and testing sets, initializes a k-nearest neighbor model, creates a tuning grid, and prints the mean test score.
+
+```py
+# Import packages and functions
+import warnings
+warnings.simplefilter("ignore")
+import numpy as np
+import pandas as pd
+from sklearn.preprocessing import StandardScaler
+from sklearn.model_selection import train_test_split
+from sklearn.model_selection import GridSearchCV
+from sklearn.neighbors import KNeighborsClassifier
+
+# Load the dry beans dataset
+beans = pd.read_csv("Dry_Bean_Data.csv")
+
+# Create input and output feature sets
+X = beans[["Solidity", "roundness", "Extent"]]
+y = beans[["Class"]]
+
+# Create training/testing split
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.1, random_state=123)
+
+# Scale the input features
+scaler = StandardScaler()
+X_train = scaler.fit_transform(X_train)
+X_test = scaler.transform(X_test)
+
+# Initialize k-nearest neighbors model
+kNNBean = KNeighborsClassifier()
+
+# Create tuning grid
+k = {"n_neighbors": [6, 8, 10, 11]}
+
+# --------------------------------------------
+# Initialize tuning grid 
+beanGrid = GridSearchCV(kNNBean, k, cv=6)
+
+# Fit grid to training data
+beanGrid.fit(X_train, np.ravel(y_train))
+# --------------------------------------------
+
+# Print mean testing scores
+print("Mean testing scores:", beanGrid.cv_results_["mean_test_score"])
+```
+
+### 4.3 Ex. 3
+
+Two researchers collected high-resolution images of 13,611 grains of seven varieties of dry beans. Using a computer vision process, 16 features of each bean were extracted.
+
+- Use the attribute `best_params_` to print the value of `k` that results in the best mean testing score.
+
+The code provided contains all imports, loads the dataset, creates input and output feature sets, splits the data into training and testing sets, initializes a k-nearest neighbor model, creates a tuning grid, and initializes and fits a tuning grid to the training data.
+
+```py
+# Import packages and functions
+import numpy as np
+import pandas as pd
+from sklearn.preprocessing import StandardScaler
+from sklearn.model_selection import train_test_split
+from sklearn.model_selection import GridSearchCV
+from sklearn.neighbors import KNeighborsClassifier
+
+# Load the dry beans dataset
+beans = pd.read_csv("Dry_Bean_Data.csv")
+
+# Create input and output feature sets
+X = beans[["ConvexArea", "roundness", "EquivDiameter"]]
+y = beans[["Class"]]
+
+# Create training/testing split
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.1, random_state=123)
+
+# Scale the input features
+scaler = StandardScaler()
+X_train = scaler.fit_transform(X_train)
+X_test = scaler.transform(X_test)
+
+# Initialize k-nearest neighbors model
+kNNModel = KNeighborsClassifier()
+
+# Create tuning grid
+k = {"n_neighbors": [3, 8, 10, 11]}
+
+# Initialize tuning grid 
+beanGrid = GridSearchCV(kNNModel, k, cv=5)
+
+# Fit grid to training data
+beanGrid.fit(X_train, np.ravel(y_train))
+
+# --------------------------------------------
+# Print value of k that results in the best mean testing score
+print("Best parameter:", beanGrid.best_params_)
+# --------------------------------------------
+```
+
 
 # 4.4 (LAB)
+
 
 
 # 4.5 (LAB)
