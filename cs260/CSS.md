@@ -235,10 +235,8 @@ Here are some properties that are commonly styled.
 - `display` defines how to display the element and its children...?
 - `font` (value: `family size style`) defines text font, size, & style (bold, italic, etc.).
   - or you can just set `font-family`, `font-size`, and `font-style` individually. 
-- `margin` (value: `top right bottom left`) adds spacing between the element's contents and its edges.
-  - or you can set top/right/bottom/left individually.
-- `padding` (value: `top right bottom left`) adds spacing between an element's edges and elements around it.
-  - or you can set top/right/bottom/left individually.
+- `margin` (value: `top right bottom left`) adds spacing between an element's edges and elements around it. (i.e. EXTERNAL spacing.)
+- `padding` (value: `top right bottom left`) adds spacing between the element's contents and its edges. (i.e. INTERNAL spacing.)
 
 For the `margin` and `padding` shorthands, use TRBL ("TRouBLe") mnemonic to remember the sequence of the four values you assign. (Or you can remember it's ordered clockwise starting at the top, if you're lame.)
 
