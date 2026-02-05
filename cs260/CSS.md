@@ -139,9 +139,11 @@ Selectors are used to "find" the HTML element(s) to apply a rule's styling to.
 | **universal selector** | ALL elements.                                     | `*`           | Literally anything bruv. |  
 | **list of elements**   | All elements with any of a list of names.         | `div, p`      | `<p>` <br/> `<div>` |  
 
-(Actually, I think the list of elements entry in that table technically describes a CSS combinator...)
+<!-- (Actually, I think the list of elements entry in that table technically describes a CSS combinator...maybe?) -->
 
-### Combinators
+The `*` selector is pretty dangerous. If you're importing a library, `*` might override that library's rules!
+
+### Combinators (selecting by relationship)
 
 A combinator defines the relationship btwn two or more selectors for a single rule.
 
@@ -190,9 +192,21 @@ Common uses for psuedo-elements:
 
 For more information, see the [w3schools page on CSS pseudo-elements](https://www.w3schools.com/css/css_pseudo_elements.asp). For a list of all CSS pseudo-elements, see the [w3schools CSS Pseudo-elements Reference](https://www.w3schools.com/cssref/css_ref_pseudo_elements.php).
 
-### Attribute selectors
+### Attribute selectors (`[]`)
 
-[TODO](https://www.w3schools.com/css/css_attribute_selectors.asp)
+CSS attribute selectors select & style HTML elements w/ a specific attribute or attribute value&mdash;or both.
+
+- `[attribute]` selects elements that have an `attribute` attribute.
+- `[attribute="value"]` selects elements whose `attribute` attr is set to exactly `"value"`. 
+- `[attribute~="value"]` selects elements whose `attribute` attr is `"value"` or contains `"value"` in a space-separated list.
+  - e.g., `[title~="flower"]` matches elements w/ `title="flower"`, `title="summer flower"`, `title="flower new"`, but NOT `title="my-flower"` or `title="flowers"`.
+- `[attribute|="value"]` selects elements whose `attribute` attr is `"value"` or starts with `value-` (`value` followed by a hyphen).
+  - e.g. `[class|="top"]` would match `class="top"` or `class="top-text"`.
+- `[attribute^="value"]` selects elements whose `attribute` attr STARTS w/ `value`.
+- `[attribute$="value"]` selects elements whose `attribute` attr ENDS w/ `value`.
+- `[attributes*="value"]` selects elements whose `attribute` attr CONTAINS `value` anywhere within it.
+
+For more information, see [w3school's page on attribute selectors](https://www.w3schools.com/css/css_attribute_selectors.asp).
 
 ### Precedence
 
@@ -207,3 +221,118 @@ So, referencing that order, rule precedence works (within a single stylesheet) l
 
 - Rules with higher specificity override rules with lower specificity.
 - Between rules with equal specificity, the one that appears LATER in the stylesheet wins.
+
+You can also add the `!important` keyword before a rule to forget about these specificity rules and always override.
+
+## Properties
+
+Here are some properties that are commonly styled.
+
+- `background-color`.
+- `border` (value: `color width style`) gives an element a border.
+  - or you can set `border-color`, `border-width`, and `border-style` individually.
+- `color` sets the text color within an element.
+- `display` defines how to display the element and its children...?
+- `font` (value: `family size style`) defines text font, size, & style (bold, italic, etc.).
+  - or you can just set `font-family`, `font-size`, and `font-style` individually. 
+- `margin` (value: `top right bottom left`) adds spacing between the element's contents and its edges.
+  - or you can set top/right/bottom/left individually.
+- `padding` (value: `top right bottom left`) adds spacing between an element's edges and elements around it.
+  - or you can set top/right/bottom/left individually.
+
+For the `margin` and `padding` shorthands, use TRBL ("TRouBLe") mnemonic to remember the sequence of the four values you assign. (Or you can remember it's ordered clockwise starting at the top, if you're lame.)
+
+## CSS Length Units
+
+[(w3school's page on CSS units)](https://www.w3schools.com/cssref/css_units.php)
+
+### Absolute lengths
+
+Absolute length units are fixed: a length expressed in any of these will appear as exactly that size. 
+
+They are not recommended for use on a screen b/c screen sizes vary so much. But they're chill if you're output medium is known&mdash;e.g. for print. (When printing a web page, browsers try much harder to match physical reality.)
+
+Absolute units are anchored to each other:
+
+$96 \text{px} = 1 \text{in} = 2.54 \text{cm} = 25.4 \text{mm} = 72 \text{pt} = 6 \text{pc}$
+
+Those last two&mdash;`pt` and `pc`&mdash;are "points" (1/72 of an inch) and "peca" (12 pts), respectively.
+
+`px` is not actually a screen pixel, it's a "CSS pixel". CSS spec defines 1px as the visual angle (i.e. amt of space taken up in your FOV) of one pixel on a 96dpi device when viewed at arm's length (28 inches, to be exact). Mathematically, this visual angle is 0.0213 degrees. (For more info, look up "CSS Reference Pixel".)
+
+<!-- 
+| Unit   | Description |  
+| ------ | ----------- |  
+| `px`   | Pixels.* |  
+| `pt`   | "Points" (1/72 of an inch). |  
+| `in`   | Inches. (96px). |   -->
+
+### Relative lengths (use these)
+
+| Unit   | Description |  
+| ------ | ----------- |  
+| `%`    | A percentage of the **parent's size**. |  
+| `em`   | A multiplier of **element's font size**. |  
+| `rem`  | A multiplier of the **root element font size**. |  
+| `vw`   | 1vw = 1% of **viewport's width**. |  
+| `vh`   | 1vh = 1% of **viewport's height**. |  
+| `vmin` | 1vmin = 1% of **viewport's smaller dimension**. |  
+| `vmax` | 1vmax = 1% of **viewport's larger dimension**. |  
+
+- "viewport" is the browser's window size.
+- "root element" is the very top-level element of the document, accessible via the `:root` selector in CSS.
+  - For web pages, this is almost ALWAYS the `<html>` tag.
+    - (Even if you don't write your HTML code w/ an `<html>` tag at the root, most browsers will "auto-correct" your code to make it the root.)
+
+### Using units
+
+- Whitespace may not appear between a number and its unit.
+  - However, if the value is `0`, the unit may be omitted.
+- w3school says that `em` and `rem` are the most practical units for creating a perfectly scalable layout.
+- If you use a percentage to change the root element's font size, it takes a percentage of the browser's default font size.
+  - In almost all browsers, this is 16px.
+    - Many developers find this default annoying. A common hack is to set the root's `font-size` to `62.5%`. That way, 1rem = 10px, so the math is easy.
+
+## Fonts
+
+### Importing fonts
+
+Here's how you would use a different font in your website:
+
+```css
+@font-face {
+    font-family: 'Quicksand';
+    src: url('https://yourstartup.click/path/to/font.ttf');
+}
+
+body {
+    font-family: Quicksand, Helvetica, Arial, sans-serif;
+}
+```
+
+### Importing fonts using a Google Fonts API call
+
+```css
+@import url('https://fonts.googleapis.com/css?family=Montserrat:100,400,900|Quicksand');
+
+h1 {
+ font-family: Quicksand, sans-serif;
+}
+
+p {
+ font-family: 'Montserrat', sans-serif;
+ font-weight: 100;
+ font-size: 2em;
+}
+```
+
+The above code downloads Montserrat font from Google Fonts w/ font weights 100, 400, and 900 (each a separate file), and it downloads Quicksand (one file for all weights because it's a variable font).
+
+### Font fallbacks
+
+When you set a `font-family` in a CSS declaration, you can include many in a (comma-separated) list. If the first font fails to load, then the browser will try to use the next one (i.e. "fallback"), and if that fails it'll try to use the next one, and so on. 
+
+## Animations
+
+Bruh I ain't doing all of ts for my website.
+
