@@ -138,6 +138,7 @@ LOOCV can be thought of as $k$-fold CV w/ a single instance in each fold.
       - One option is `"neg_mean_squared_error`, which gives you the negative MSE. You can multiply this by -1 to obtain the actual MSE.
       - For a list of available performance metrics, see the [scikit-learn documentation](https://scikit-learn.org/stable/modules/model_evaluation.html#scoring-parameter).
     - `cv`: int. The number of folds (for $k$-fold CV). (Default: `5`.)
+      - OR: A set of folds (made with `KFold()`.)
     - `return_train_score`: bool. Specifies whether/not to include performance metrics for each training set (huh???). (Default: `False`.)
     - `return_estimator`: bool. Specifies whether/not to return the estimated model params for each training set (huh???). (Default: `False`.)
     - `params`: dictionary. Specifies hyperparams for the CV model. (Default: `None`.) 
@@ -324,14 +325,13 @@ Param estimates&mdash;e.g. weight in log reg&mdash;depend on train/val/test spli
 
 ## CV Model selection in sklearn
 
+### `cross_validate()`
+
 sklearn has `cross_val_score()` and `cross_validate()`, but the former only returns scores while the latter returns a lot more information in addition to scores, so `cross_validate()` is preffered.
 
-For model comparisons to be valid, the same set of CV folds must be used across models. `KFold()` can be used to define a set of CV folds to use as a parameter in `cross_validate()`. Details and params for `KFold()` are listed in its [documentation](https://scikit-learn.org/stable/modules/generated/sklearn.model_selection.KFold.html#sklearn.model_selection.KFold).
-
-### `cross_validate()` returns
+#### `cross_validate()` returns
 
 `cross_validate()` returns a DICTIONARY. Associated w/ each key is an array where each element corresponds to the result of one CV split. The table below includes the dictionaries keys and a description of what is contained in each element of the associated array.
-
 
 | Key             | Contents of associated array |  
 | --------------- | ---------------------------- |  
@@ -341,7 +341,23 @@ For model comparisons to be valid, the same set of CV folds must be used across 
 | `"score_time"`  | Time for scoring the estimator. |  
 | `"estimator"`   | Fitted models. Only returned if `return_estimator=True` is passed into `cross_validate()`. |  
 
-#### Example
+### `KFold()`
+
+For model comparisons to be valid, **the same set of CV folds must be used across models**. 
+
+To do this in code, use `KFold()` to define a set of CV folds. Then pass that in as the `cv` param each time you use `cross_validate()` with your models.
+
+#### `KFold()` params
+
+| Param          | Default | Description |  
+| -------------- | ------- | ----------- |  
+| `n_splits`     | 5       | INTEGER. Number of folds. Must be at least 2. |  
+| `shuffle`      | False   | BOOL. Whether/not to shuffle the data before splitting. (Note that samples within each split will not be shuffled.) |  
+| `random_state` | `None`    | INTEGER. Sort of like setting a seed for the shuffling. (`shuffle` MUST be set to TRUE when you pass in a val for `random_state`, otherwise you'll get an error at runtime.) |  
+
+For more info, see sklearn's [documentation](https://scikit-learn.org/stable/modules/generated/sklearn.model_selection.KFold.html#sklearn.model_selection.KFold) on `KFold()`.
+
+### Example
 
 ```py
 # imports
@@ -670,7 +686,7 @@ If specific hyperparam values are unknown, `RandomizedSearchCV(estimator, param_
 | Param        | Default | Description                                                                                                                                           |  
 | ------------ | ------- | ----------------------------------------------------------------------------------------------------------------------------------------------------- |  
 | `estimator`  | NA      | SKLEARN MODEL. Can be passed as an initialized model or the model function. (e.g. `estimator=KNeighborsClassifier()`.)                                |  
-| `param_grid` | NA      | DICTIONARY containing **hyperparam names & vals**.                                                                                                    |  
+| `param_grid` | NA      | DICTIONARY. Each KEY is a **hyperparam name** (STRING); each key's VALUE is an ARRAY of **hyperparam values** to try.                                 |  
 | `cv`         | 5       | INTEGER for the **number of CV folds**, or a set of predefined CV folds.                                                                              |  
 | `verbose`    | 0       | INTEGER specifying **how much info to print to the console** while fitting models. Possible vals range from 0-4, w/ higher vals printing more detail. |  
 | `refit`      | `True`  | BOOL. Setting `refit=True` **re-trains the model** using the best hyperparams.                                                                        |  
@@ -680,7 +696,8 @@ If specific hyperparam values are unknown, `RandomizedSearchCV(estimator, param_
 After completing the grid search:
 
 - Results are stored as a DICTIONARY in the attribute `.cv_results_`.
-- `.predict()` and `.score()` will only return results for the BEST hyperparams.
+- The best estimator is contained in the attribute `.best_estimator_`.
+- After using `GridSearchCV()` on a model, calling that model's `.predict()` and `.score()` will only return results for the BEST hyperparams.
 
 ### Example
 
@@ -982,7 +999,119 @@ print("Best parameter:", beanGrid.best_params_)
 
 # 4.4 (LAB)
 
+The `taxis` dataset contains information on taxi journeys during March 2019 in New York City. The data includes time, number of passengers, distance, taxi color, payment method, and trip locations. Use `scikit-learn`'s `cross_validate()` function to fit a linear regression model and a k-nearest neighbors regression model with 10-fold cross-validation.
 
+- Create dataframe `X` with the feature distance.
+- Create dataframe `y` with the feature fare.
+- Split the data into 80% training, 10% validation and 10% testing sets, with `random_state=42`.
+- Initialize a linear regression model.
+- Initialize a k-nearest neighbors regression model with k = 3.
+- Define a set of 10 cross-validation folds with random_state=42.
+- Fit the models with cross-validation to the training data, using the default performance metric.
+- For each model, print the test score for each fold, as well as the mean and standard deviation for the model.
+
+
+```py
+import pandas as pd
+import numpy as np
+from sklearn.model_selection import train_test_split
+from sklearn.model_selection import cross_validate
+from sklearn.model_selection import KFold
+from sklearn.neighbors import KNeighborsRegressor
+from sklearn.linear_model import LinearRegression
+
+taxis = pd.read_csv("taxis.csv")
+
+# Create dataframe X with the feature distance
+X = taxis[["distance"]]
+# Create dataframe y with the feature fare
+y = taxis[["fare"]]
+
+# Set aside 10% of instances for testing
+TEST_SIZE = 0.1
+X_temp, X_test, y_temp, y_test = train_test_split(X, y, test_size=TEST_SIZE, random_state=42)
+
+# Split training again into 80% training and 10% validation 
+VALIDATION_SIZE = 0.1
+X_train, X_valid, y_train, y_valid = train_test_split(X_temp, y_temp, test_size=VALIDATION_SIZE / (1 - TEST_SIZE), random_state=42)
+
+# Initialize a linear regression model
+SLRModel = LinearRegression()
+# Initialize a k-nearest neighbors regression model with k = 3
+knnModel = KNeighborsRegressor(n_neighbors=3)
+
+# Define a set of 10 cross-validation folds with random_state=42
+kf = KFold(n_splits=10, random_state=42, shuffle=True)
+
+# Fit k-nearest neighbors with cross-validation to the training data
+knnResults = cross_validate(knnModel, X_train, np.ravel(y_train), cv=kf)
+
+# Find the test score for each fold
+knnScores = knnResults["test_score"]
+print("k-nearest neighbor scores:", knnScores.round(3))
+
+# Calculate descriptive statistics for k-nearest neighbor model
+print("Mean:", knnScores.mean().round(3))
+print("SD:", knnScores.std().round(3))
+
+# Fit simple linear regression with cross-validation to the training data
+SLRModelResults = cross_validate(SLRModel, X_train, np.ravel(y_train), cv=kf)
+
+# Find the test score for each fold
+SLRScores = SLRModelResults["test_score"]
+print("Simple linear regression scores:", SLRScores.round(3))
+
+# Calculate descriptive statistics simple linear regression model
+print("Mean:", SLRScores.mean().round(3))
+print("SD:", SLRScores.std().round(3))
+```
 
 # 4.5 (LAB)
 
+The diamond dataset contains the price, cut, color, and other characteristics of a sample of nearly 54,000 diamonds. This data can be used to predict the price of a diamond based on its characteristics. Use `scikit-learn`'s `GridSearchCV()` function to train and evaluate an elastic net model over a hyperparameter grid.
+
+- Create dataframe `X` with the features `carat` and `depth`.
+- Create dataframe `y` with the feature `price`.
+- Split the data into 80% training and 20% testing sets, with `random_state = 42`.
+- Initialize an elastic net model with `random_state = 0`.
+- Create a tuning grid with the hyperparameter name `alpha` and the values `0.1`, `0.5`, `0.9`, `1.0`.
+- Use `GridSearchCV()` with `cv=10` to initialize and fit a tuning grid to the training data.
+- Print the mean testing score for each fold and the best parameter value.
+
+```py
+import numpy as np
+import pandas as pd
+from sklearn.model_selection import train_test_split
+from sklearn.model_selection import GridSearchCV
+from sklearn.preprocessing import StandardScaler
+from sklearn.linear_model import ElasticNet
+
+diamonds = pd.read_csv("diamonds.csv")
+
+# Create dataframe X with the features carat and depth
+X = diamonds[["carat", "depth"]]
+# Create dataframe y with the feature price
+y = diamonds[["price"]]
+
+# Create training/testing split
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+# Scale the input features
+scaler = StandardScaler()
+X_train = scaler.fit_transform(X_train)
+X_test = scaler.transform(X_test)
+
+# Initialize elastic net model
+ENModel = ElasticNet(random_state=0)
+
+# Create tuning grid
+alpha = {"alpha": [0.1, 0.5, 0.9, 1.0]}
+
+# Initialize tuning grid and fit to training data
+ENTuning = GridSearchCV(ENModel, alpha, cv=10)
+ENTuning.fit(X_train, np.ravel(y_train))
+
+# Mean testing score for each lambda and best model
+print("Mean testing scores:", ENTuning.cv_results_["mean_test_score"])
+print("Best estimator:", ENTuning.best_estimator_)
+```
