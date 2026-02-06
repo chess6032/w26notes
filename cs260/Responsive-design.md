@@ -28,8 +28,8 @@ Here are some commonly used options:
 | `none`   | Element is **not displayed**.              | The element still exists; it just isn't rendered by the browser. |  
 | `block`  | Element's **width fills parent** element.  | `p` and `div` elements use block display by default. |  
 | `inline` | Element's **width hugs content**.          | `b` and `span` elements use inline display by default. |  
-| `grid`   | Displays element's children in rows AND columns. | (See [grid](#grid)) |  
-| `flex`   | Displays element's children in rows OR columns.  | (See [flex](#flex)) |  
+| `grid`   | Displays element's children in rows AND columns. | (See [grid](#grid-display)) |  
+| `flex`   | Displays element's children in rows OR columns.  | (See [flex](#flex-display)) |  
 
 ## Grid display
 
