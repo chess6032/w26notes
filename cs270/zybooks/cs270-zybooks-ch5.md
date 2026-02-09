@@ -10,7 +10,9 @@ Lin Reg is used for:
 
 **Simple linear regression** models/predicts the output feature based on a LINEAR RELATIONSHIP w/ only ONE INPUT feature:
 
-$$\hat y = w_0 + w_1x$$
+```math
+\hat y = w_0 + w_1x
+```
 
 - $w_0$ and $w_1$ are weights.
   - Mathematically, they're the y-intercept and the slope, respectively.
@@ -27,8 +29,12 @@ Least squares is the MOST COMMON METHOD for estimating the weights of a lin reg 
 
 The rationale for least squares starts with the **residual**, which is a way to calculate to the "closeness" of predicted to observed values. The residual just looks at the vertical distance btwn observed and predicted data: $e_i = y_i - \hat y_i$. 
 
-Least squares selects weights $w_0$ and $w_1$ such that THE SUM OF SQUARED RESIDUALS IS MINIMIZED. I.e.:
+Least squares selects weights $w_0$ and $w_1$ such that THE SUM OF SQUARED RESIDUALS (RSS) IS MINIMIZED:
 
-$$\text{RSS} = \sum_{i=1}^n (y_i - \hat y_i)^2 = \sum_{i=1}^n (y_i - (w_0 + w_1x_i))^2$$
+```math
+\text{RSS} = \sum_{i=1}^n (y_i - \hat y_i)^2 = \sum_{i=1}^n \big(y_i - (w_0 + w_1x_i)\big)^2
+```
 
-$$\text{Least squares finds } w_0, w_1 \text{ such that RSS is minimized.}$$
+```math
+\text{Least squares finds } w_0, w_1 \text{ such that RSS is minimized.}
+```
