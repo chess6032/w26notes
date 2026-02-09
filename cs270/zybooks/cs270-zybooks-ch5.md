@@ -31,11 +31,9 @@ The rationale for least squares starts with the **residual**, which is a way to 
 
 Least squares selects weights $w_0$ and $w_1$ such that THE SUM OF SQUARED RESIDUALS (RSS) IS MINIMIZED:
 
-```math
+$$
 \text{RSS} = \sum_{i=1}^n (y_i - \hat y_i)^2 = \sum_{i=1}^n \big(y_i - (w_0 + w_1x_i)\big)^2
-
 \\\\
-
 \text{Least squares finds } w_0, w_1 \text{ such that RSS is minimized.}
-```
+$$
 
