@@ -603,3 +603,154 @@ Output:
     [5.31562]
     [0.04920547 0.29733263]
     [4.65127195]
+
+
+
+## 5.3: KNN Regression
+
+### 5.3.1: kNN regression using sklearn
+
+The following Python code loads the full dataset for rentals listed in 2018. The price for rentals in San Jose is predicted using k-nearest neighbors regression from a single input feature, sqft, and then from three input features: sqft, baths, and beds. The price of a rental with 2000 square feet, 2 bedrooms, and 1 bathroom is predicted.
+
+I did not do ts but here were the instructions:
+
+- Modify the code predicting price from square footage to use k=15 nearest neighbors. Re-run the code and examine changes in the prediction line plotted with the data.
+- Compare results from the k-nearest neighbors regression model fit using unstandardized input features and the model fit using standardized input features.
+- Modify the code initializing the knnrScaled model to use Manhattan distance. Re-run the code and examine changes in the predicted price for the new instance and the instance's nearest neighbors.
+
+```py
+import warnings
+warnings.simplefilter("ignore")
+```
+```py
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+from mpl_toolkits import mplot3d
+
+from sklearn.preprocessing import StandardScaler
+from sklearn.neighbors import KNeighborsRegressor
+```
+```py
+# Load the dataset
+rent_all = pd.read_csv("rent18.csv")
+
+# Keep subset of features, drop missing values
+rent = rent_all[rent_all["city"] == "san jose"]
+rent = rent[["price", "beds", "baths", "sqft"]].dropna()
+rent.head()
+```
+```py
+# Predict price from sqft
+# Define input and output features
+X = rent[["sqft"]]
+y = rent[["price"]]
+
+
+# Plot sqft and price
+fig = plt.figure(figsize=(4, 3))
+plt.scatter(X, y, color="#1f77b4")
+plt.xlabel("Square footage", fontsize=14)
+plt.ylabel("Price ($)", fontsize=14)
+plt.ylim([700, 5000])
+plt.xlim([200, 3000])
+
+plt.show()
+```
+```py
+# Initiate and fit a k-nearest neighbors regression model with k=5
+knnr = KNeighborsRegressor(n_neighbors=5)
+knnrFit = knnr.fit(X, y)
+```
+```py
+# Define a new instance with 2000 square feet
+Xnew = [[2000]]
+
+# Predict price for new instance
+neighbors = knnrFit.predict(Xnew)
+neighbors
+```
+```py
+# Find the 5 nearest neighbors for the new instance
+neighbors = knnrFit.kneighbors(Xnew)
+
+# Return only the distances between the new instance and each of the the 5 nearest neighbors
+neighbors[0]
+```
+```py
+# Return the data frame instances of the 5 nearest neighbors
+rent.iloc[neighbors[1][0]]
+```
+
+Instances in the neighborhood have similar square footage, but different numbers of bedrooms and bathrooms. Adding beds and baths as input features, in addition to square footage, seems reasonable.
+
+```py
+# Plot data with k-nearest neighbors prediction
+Xvals = np.linspace(200, 3000, 100).reshape(-1, 1)
+knnrPred = knnr.predict(Xvals)
+
+fig = plt.figure(figsize=(4, 3))
+plt.scatter(X, y, color="#1f77b4")
+plt.plot(Xvals, knnrPred, color="#ff7f0e", linewidth=2)
+plt.xlabel("Square footage", fontsize=14)
+plt.ylabel("Price ($)", fontsize=14)
+plt.ylim([700, 5000])
+plt.xlim([200, 3000])
+
+plt.show()
+```
+```py
+# Define input features as sqft, beds, and baths
+X = rent[["sqft", "beds", "baths"]]
+y = rent[["price"]]
+
+# Scale the input features
+scaler = StandardScaler()
+Xscaled = scaler.fit_transform(X)
+```
+```py
+# Initiate and fit a k-nearest neighbors regression model with k=5 on unscaled input features
+knnrUnscaled = KNeighborsRegressor(n_neighbors=5)
+knnrUnscaledFit = knnrUnscaled.fit(X, y)
+```
+```py
+# Initiate and fit a k-nearest neighbors regression model with k=5 on unscaled input features
+knnrScaled = KNeighborsRegressor(n_neighbors=5)
+knnrScaledFit = knnrScaled.fit(Xscaled, y)
+```
+```py
+# Define new instance with 2000 square feet, 2 bedrooms, 1 bathroom
+Xsqft = 2000
+Xbeds = 2
+Xbaths = 1
+Xnew = [[Xsqft, Xbeds, Xbaths]]
+Xnew
+```
+```py
+# Predict price for new instance using unscaled input features
+print("Prediction from unscaled input features: ", knnrUnscaledFit.predict(Xnew)[0][0])
+
+# Predict price for new instance using scaled input features
+# Find scaled input features for new instance
+XsqftScaled = (Xsqft - rent["sqft"].mean()) / (rent["sqft"].var() ** 0.5)
+XbedsScaled = (Xbeds - rent["beds"].mean()) / (rent["beds"].var() ** 0.5)
+XbathsScaled = (Xbaths - rent["baths"].mean()) / (rent["baths"].var() ** 0.5)
+
+XnewScaled = [[XsqftScaled, XbedsScaled, XbathsScaled]]
+
+print(
+    "Prediction from scaled input features: ", knnrScaledFit.predict(XnewScaled)[0][0]
+)
+```
+
+    Prediction from unscaled input features: 3740.0
+    Prediction from scaled input features: 2609.0
+
+```py
+# Unscaled nearest neighbors
+rent.iloc[knnrUnscaledFit.kneighbors(Xnew)[1][0]]
+```
+```py
+# Scaled nearest neighbors
+rent.iloc[knnrScaledFit.kneighbors(XnewScaled)[1][0]]
+```

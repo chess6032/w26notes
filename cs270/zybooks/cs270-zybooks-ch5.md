@@ -332,3 +332,120 @@ Disadvantages:
   - idrk what "standardized" means in this context...
   - (5.2.3)
 - For a simple linear model, the loss function for ridge regression simplifies to $\text{RSS} + \alpha w_1^2$. Neat!
+
+# 5.3: kNN for Regression
+
+$k$-nearest neighbors regression predicts the value of a numeric output feature based on the avg output for other instances w/ the most similar (i.e. nearest) input features.
+
+So it's just KNN classification, except instead of using similar neighbors to predict a class, you're predicting a number. **The average value of the output feature for the $k$ nearest instances becomes the prediction.**
+
+- Linear regression assumes input and output features are related.
+- KNN regression assumes instances close to each other are similar.
+
+## KNN Regression Algorithm
+
+- LET $\mathbf x_i = [x_{1i}, x_{2i}, \dots, x_{pi}]$ denote the $p$ input features from instnace $i$.
+- LET $y_i$ denote the output feature.
+- LET $n$ denote the number of instances in a dataset.
+
+The output value for a new instance $\mathbf x^*$ is determing in KNN reg by IDENTIFYING THE $k$ NEAREST INSTANCES TO $\mathbf x^*$, and ASSIGNING THE AVG OUTPUT VAL of these instances as the prediction.
+
+A step-by-step algorithm is describe in 5.3.1:
+
+1. Select an integer val for $k$.
+2. Calculate the distance btwn $\mathbf x^*$ and all other $\mathbf x_i \space \forall \space 1 \le i \le n$.
+3. Sort the distance from smallest to largest, and identify the $k$ smallest distances. Let $N$ be the set of the indeces ($i$) of the $k$ nearest neighbors to $\mathbf x^*$.
+4. Calculate the average of the output features for the $k$ nearest neighbors: $\frac 1 k \sum_ {i \in N} y_i$
+5. The average output for the nearest neighbors is the prediction for instance $\mathbf x^*$.
+
+I guess the big thing is this:
+
+
+```math
+\text{LET } N \text{ be set of the indeces of the } k \text{ nearest neighbors to } \mathbf x^*
+```
+
+```math
+y^* = \frac 1 k \sum_{i \in N} y_i
+```
+
+```math
+(\text{The output of } \mathbf x^* \text{ is the average of the } k \text{ nearest neighbors' outputs})
+```
+
+## Selecting the nearest neighbors
+
+KNN has TWO HYPERPARAMS:
+
+1. The number of neighbors ($k$).
+2. The metric for measuring distance.
+
+&nbsp;
+
+- Setting $k$ too SMALL may result in OVER-fitting.
+- Setting $k$ too LARGE may result in UNDER-fitting.
+
+Meanwhile, depending on how distance is defined, the nearest neighbors may change. Three common distance measures for kNN regression are EUCLIDEAN, MANHATTAN, and MINKOWSKI distance (the same ones for KNN classification). 
+
+Here is each distance formula for determing the distance btwn two instances, $a$ and $b$, with $p$ input features (5.3.1):
+
+&nbsp;
+
+```math
+\text{Manhattan distance}
+```
+```math
+d_M(a, b) = \sum_{i=1}^p |x_{ia} - x_{ib}|
+```
+
+&nbsp;
+
+```math
+\text{Euclidean distance}
+```
+```math
+d_E(a, b) = \sqrt{\sum_{i=1}^p (x_{ia} - x_{ib})^2}
+```
+
+&nbsp;
+
+```math
+\text{Minkowski distance}
+```
+```math
+d_m(a, b) = \Big(\sum_{i=1}^p |x_{ia} - x_{ib}|^m\Big)^{1/m}
+```
+
+If you look closely, you'll notice that Manhattan and Euclidean distance are really just Minkowski distance with $m = 1$ and $m = 2$, respectively.
+
+## kNN Regression in sklearn
+
+- kNN is implemented via `KNeighborsRegressor()` from `sklearn.neighbors`.
+- `model.kneighbors(X)` method returns the indeces and distances of the $k$ nearest neighbors for `X`.
+
+### `KNeighborsRegressor()` parameters
+
+| Parameter     | Default         | Description |  
+| ------------- | --------------- | ----------- |  
+| `n_neighbors` | `5`             | Sets the number of neighbors ($k$) |  
+| `metric`      | `"minkowski"`   | Distance measure for calculating distance btwn points. (See [this documentation](https://scikit-learn.org/stable/modules/generated/sklearn.metrics.pairwise.distance_metrics.html#sklearn.metrics.pairwise.distance_metrics) for a full list of allowable metrics.) |  
+| `p`           | `2` (Euclidean) | Power parameter $m$ for Minkowski distance. Setting `p=1` or `p=2` results in Manhattan or Euclidean distance, respectively. |  
+
+More params & details can be found in the [sklearn documentation](https://scikit-learn.org/stable/modules/generated/sklearn.neighbors.KNeighborsRegressor.html).
+
+## Advantages & Disadvantages
+
+Advantages:
+
+- kNN regression is a flexible model and DOES NOT REQUIRE A SPECIFIC RELATIONSHIP BTWN INPUT & OUTPUT features.
+  - Hence, the model WORKS WELL FOR COMPLEX OR NON-LINEAR RELATIONSHIPS.
+- With a large enough $k$, the model is NOT sensitive to noise or outliers.
+
+Disadvantages:
+
+- kNN regression is SENSITIVE to the NUMBER OF INPUT FEATURES and the NUMBER OF INSTANCES.
+  - When the number of input features becomes large, the model can end up having sparse areas. Hence, the nearest neighbors for an instance $\mathbf x^*$ may not actually be similar to $\mathbf x^*$, resulting in poor predictions.
+  - Because the kNN algorithm calculates the distance from each instance, the algorithm is COMPUTATIONALLY EXPENSIVE w/ a large number of instances.
+
+When a large number of input featuers is used to fit a KNN regression model, the data should also include a large number of instances. (Avoids sparse areas in model, ensuring that neighbors *are* actually similar to each other.)
+
