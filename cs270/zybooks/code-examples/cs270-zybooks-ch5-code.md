@@ -1,6 +1,8 @@
 # CS 270 Zybooks Ch. 5 Code Examples
 
-## Linear Regression in Python (5.1.1)
+## 5.1
+
+### Linear Regression in Python (5.1.1)
 
 ```py
 import warnings
@@ -131,7 +133,7 @@ Complete the code to predict the rental price for a rental with 3 bedrooms and 1
 prediction = regModelFit.predict([[3, 1]])
 ```
 
-## 5.1.2: 1
+### 5.1.2: 1
 
 The World Happiness Report ranks 155 countries based on data from the Gallup World Poll. People completing the survey are asked to rate their current lives, which is averaged across countries to produce a rating on a scale from 0 (worst possible) to 10 (best possible).
 
@@ -168,7 +170,7 @@ print(SLRHappiness.intercept_)
 print(SLRHappiness.coef_)
 ```
 
-## 5.1.2: 2
+### 5.1.2: 2
 
 The World Happiness Report ranks 155 countries based on data from the Gallup World Poll. People completing the survey are asked to rate their current lives, which is averaged across countries to produce a rating on a scale from 0 (worst possible) to 10 (best possible).
 
@@ -209,7 +211,7 @@ Output:
 [[4.17397345]]
 ```
 
-## 5.1.2: 3
+### 5.1.2: 3
 
 The World Happiness Report ranks 155 countries based on data from the Gallup World Poll. People completing the survey are asked to rate their current lives, which is averaged across countries to produce a rating on a scale from 0 (worst possible) to 10 (best possible).
 
@@ -251,3 +253,353 @@ Output:
 ```
 [[6.37484089]]
 ```
+
+## 5.2
+
+### 5.2.1: Elastic net regression using sklearn
+
+The following Python code loads the full dataset for rentals listed in 2018 and fits linear regression models for predicting rental price using elastic net regression.
+
+<!-- - Modify the regularization strength to `alpha=5` in the simple linear regression model predicting price from square footage. Re-run the code and examine changes in estimated weights.
+- Modify the weight applied to the L1 regularization term to `l1_ratio=0.75` in the multiple linear regression model predicting price from square footage and bedrooms. Re-run the code and examine changes in estimated weights. -->
+
+```py
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+from mpl_toolkits import mplot3d
+
+from sklearn.preprocessing import StandardScaler
+from sklearn.linear_model import ElasticNet
+from sklearn.linear_model import LinearRegression
+```
+
+```py
+# Load the dataset
+rent_all = pd.read_csv("rent18.csv")
+
+# Keep subset of features, drop missing values
+rent = rent_all[["price", "beds", "baths", "sqft"]].dropna()
+rent.head()
+```
+
+Use elastic net regression to predict rental price from square footage
+
+```py
+# Define input and output features for predicting price from sqft
+X = rent[["sqft"]]
+y = rent[["price"]]
+
+# Scale the input features
+scaler = StandardScaler()
+X = scaler.fit_transform(X)
+```
+```py
+# Initialize and fit model using elastic net regression
+eNet = ElasticNet(alpha=1.0, l1_ratio=0.5)
+eNet.fit(X, y)
+```
+```py
+# Estimated intercept weight
+eNet.intercept_
+```
+```py
+# Estimated weight for sqft
+eNet.coef_
+```
+
+Compare elastic net to least squares
+
+```py
+# Fit using least squares
+
+linRegModel = LinearRegression()
+linRegModel.fit(X, y)
+```
+```py
+linRegModel.intercept_
+```
+```py
+linRegModel.coef_
+```
+```py
+# Plot the data and both fitted models
+
+# Find predicted values
+yPredictedENet = eNet.predict(X)
+yPredictedLin = linRegModel.predict(X)
+
+# Plot
+plt.scatter(X, y, color="#1f77b4", s=10)
+plt.plot(X, yPredictedENet, color="#ff7f0e", linewidth=2, label="Elastic net")
+plt.plot(X, yPredictedLin, color="#3ca02c", linewidth=2, label="Least squares")
+plt.xlabel("Standardized square footage", fontsize=14)
+plt.ylabel("Price ($)", fontsize=14)
+plt.legend(loc="upper left")
+plt.show()
+```
+
+Use elastic net regression to predict rental price from square fottage and number of bedrooms.
+
+```py
+# Define input and output features
+X = rent[["sqft", "beds"]]
+y = rent[["price"]]
+
+# Scale the input features
+scaler = StandardScaler()
+X = scaler.fit_transform(X)
+```
+```py
+# Initialize and fit elastic net
+eNet2 = ElasticNet(alpha=1.0, l1_ratio=0.5)
+eNet2.fit(X, y)
+```
+```py
+# Estimated intercept and weights
+print(eNet2.intercept_)
+print(eNet2.coef_)
+```
+```py
+# Plot the absolute value of the weights
+importance = np.abs(eNet2.coef_)
+names = np.array(["sqft", "beds"])
+sort = np.argsort(importance)[::-1]
+plt.bar(x=names[sort], height=importance[sort])
+plt.ylabel("Importance", fontsize=14)
+plt.show()
+```
+
+Set $\alpha=1$, show weight estimates for different values of the weight applied to the L1 norm, $\lambda$.
+
+```py
+aVal = 1
+l1vals = np.linspace(
+    0.01,
+    1,
+    100,
+)
+ENcoef = np.empty([100, 3])
+
+for i in range(len(l1vals)):
+    EN = ElasticNet(alpha=aVal, l1_ratio=l1vals[i], max_iter=10000)
+    EN.fit(X, y)
+    ENcoef[i, 0] = EN.intercept_[0]
+    ENcoef[i, 1] = EN.coef_[0]
+    ENcoef[i, 2] = EN.coef_[1]
+
+# Plot
+fig = plt.figure(figsize=(5.5, 4))
+plt.plot(
+    l1vals,
+    ENcoef[:, 1],
+    color="#1f77b4",
+    linestyle="solid",
+    linewidth=3,
+    label=r"$w_1$",
+)
+plt.plot(
+    l1vals,
+    ENcoef[:, 2],
+    color="#ff7f0e",
+    linestyle="dashed",
+    linewidth=3,
+    label=r"$w_2$",
+)
+
+plt.xlabel(r"Weight applied to L1 norm, $\lambda$", fontsize=14)
+plt.ylabel("Estimate", fontsize=14)
+
+plt.legend(loc="upper left", fontsize=14)
+
+plt.show()
+```
+
+Set the weight applied to the L1 norm at $\lambda = 0.5$, show weight estimates for different values of the regularization strength, $\alpha$.
+
+```py
+l1NormWeight = 0.5
+alphaVals = np.logspace(-1, 2, 100)
+ENcoef = np.empty([100, 3])
+
+for i in range(len(ENcoef)):
+    EN = ElasticNet(alpha=alphaVals[i], l1_ratio=l1NormWeight, max_iter=2000)
+    EN.fit(X, y)
+    ENcoef[i, 0] = EN.intercept_[0]
+    ENcoef[i, 1] = EN.coef_[0]
+    ENcoef[i, 2] = EN.coef_[1]
+
+
+# Plot
+fig = plt.figure(figsize=(6, 4))
+plt.plot(
+    alphaVals,
+    ENcoef[:, 1],
+    color="#1f77b4",
+    linestyle="solid",
+    linewidth=3,
+    label=r"$w_1$",
+)
+plt.plot(
+    alphaVals,
+    ENcoef[:, 2],
+    color="#ff7f0e",
+    linestyle="dashed",
+    linewidth=3,
+    label=r"$w_2$",
+)
+
+
+plt.xlabel(r"Regularization strength, $\alpha$", fontsize=14)
+plt.ylabel("Estimate", fontsize=14)
+
+plt.legend(loc="upper right", fontsize=14)
+
+plt.show()
+```
+
+### 5.2.2: 1
+
+The World Happiness Report ranks 155 countries based on data from the Gallup World Poll. People completing the survey are asked to rate their current lives, which is averaged across countries to produce a rating on a scale from 0 (worst possible) to 10 (best possible).
+
+- Initialize an elastic net regression model.
+- Fit the model to the given input and output features.
+
+The code provided contains all imports, loads the dataset, creates input and output feature sets, standardizes the input features, and prints the intercept and weight of the elastic net regression model.
+
+```py
+# Import packages and functions
+import numpy as np
+import pandas as pd
+from sklearn.preprocessing import StandardScaler
+from sklearn.linear_model import ElasticNet
+
+# Load the world happiness dataset
+happiness = pd.read_csv("world_happiness_2017.csv")
+
+# Define input and output features
+X = happiness[["economy_gdp_per_capita"]]
+y = happiness[["happiness_score"]]
+
+# Scale the input features
+scaler = StandardScaler()
+X = scaler.fit_transform(X)
+
+# ---------------------------
+# Initialize an elastic net regression model
+eNetHappiness = ElasticNet()
+
+# Fit the model 
+eNetHappiness.fit(X, y)
+# ---------------------------
+
+# Print estimated intercept weight
+print(eNetHappiness.intercept_)
+
+# Print estimated weight for economy_gdp_per_capita feature
+print(eNetHappiness.coef_)
+```
+
+Output:
+
+    [5.40968]
+    [0.30094963]
+
+### 5.2.2: 2
+
+The World Happiness Report ranks 155 countries based on data from the Gallup World Poll. People completing the survey are asked to rate their current lives, which is averaged across countries to produce a rating on a scale from 0 (worst possible) to 10 (best possible).
+
+- Initialize an elastic net regression model with `alpha=43` and `l1_ratio=0.82`.
+
+The code provided contains all imports, loads the dataset, creates input and output feature sets, standardizes the input features, fits the elastic net regression model, and prints the intercept and weight.
+
+```py
+# Import packages and functions
+import numpy as np
+import pandas as pd
+from sklearn.preprocessing import StandardScaler
+from sklearn.linear_model import ElasticNet
+
+# Load the world happiness dataset
+happiness = pd.read_csv("world_happiness_2017.csv")
+
+# Define input and output features
+X = happiness[["economy_gdp_per_capita", "generosity"]]
+y = happiness[["happiness_score"]]
+
+# Scale the input features
+scaler = StandardScaler()
+X = scaler.fit_transform(X)
+
+# Initialize an elastic net regression model with alpha=43 and l1_ratio=0.82
+# ---------------------
+happinessENet = ElasticNet(alpha=43, l1_ratio=0.82)
+# ---------------------
+
+# Fit the model 
+happinessENet.fit(X,y)
+
+# Print estimated intercept weight
+print(happinessENet.intercept_)
+
+# Print estimated weights for input features
+print(happinessENet.coef_)
+```
+
+Output:
+
+    [5.40535999]
+    [0. 0.]
+
+
+### 5.2.2: 3
+
+The World Happiness Report ranks 155 countries based on data from the Gallup World Poll. People completing the survey are asked to rate their current lives, which is averaged across countries to produce a rating on a scale from 0 (worst possible) to 10 (best possible).
+
+- Print the intercept and weights for an elastic net regression model.
+- Predict the happiness score for a country with standardized `freedom` of -1.96 and `economy_gdp_per_capita` of -1.91.
+
+The code provided contains all imports, loads the dataset, creates input and output feature sets, standardizes the input features, and initializes and fits an elastic net regression model.
+
+```py
+# Import packages and functions
+import numpy as np
+import pandas as pd
+from sklearn.preprocessing import StandardScaler
+from sklearn.linear_model import ElasticNet
+
+# Load the world happiness dataset
+happiness = pd.read_csv("world_happiness_2017.csv")
+
+# Define input and output features
+X = happiness[["freedom", "economy_gdp_per_capita"]]
+y = happiness[["happiness_score"]]
+
+# Scale the input features
+scaler = StandardScaler()
+X = scaler.fit_transform(X)
+
+# Initialize an elastic net regression model
+modelENet = ElasticNet()
+
+# Fit the model 
+modelENet.fit(X,y)
+
+# -------------------
+# Print estimated intercept weight
+print(modelENet.intercept_)
+
+# Print estimated weights for input features
+print(modelENet.coef_)
+
+# Predict and print the happiness score for a country with standardized
+# freedom=-1.96 and economy_gdp_per_capita=-1.91
+print(modelENet.predict([[-1.96, -1.91]]))
+# -------------------
+```
+
+Output:
+
+    [5.31562]
+    [0.04920547 0.29733263]
+    [4.65127195]
