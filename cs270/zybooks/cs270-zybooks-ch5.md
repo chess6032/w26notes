@@ -1,3 +1,5 @@
+IF YOU'RE VIEWING ON GITHUB: GitHub's LaTeX rendering in Markdown previews kinda sucks. I'd recommend downloading these and reading viewing them in VS Code&mdash;which I wrote them in. In particular, I uses `\mathbf` (bold) to indicate variables that are vectors, but GitHub doesn't appear to render that...RIP.
+
 # 5.1: Linear Regression
 
 Linear regression models a LINEAR RELATIONSHIP BTWN $p$ INPUT FEATURES: $x_1, x_2, \dots, x_p$, and a NUMERICAL OUTPUT feature: $y$.
@@ -147,7 +149,7 @@ Often times, regularization methods will have a hyperparameter&mdash;often noted
 ```
 
 ```math
-\lim_{\alpha \rightarrow \infin}w_j = 0
+\lim_{\alpha \rightarrow \infty}w_j = 0
 ```
 
 ```math
