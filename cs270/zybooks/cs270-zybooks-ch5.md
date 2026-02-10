@@ -449,3 +449,153 @@ Disadvantages:
 
 When a large number of input featuers is used to fit a KNN regression model, the data should also include a large number of instances. (Avoids sparse areas in model, ensuring that neighbors *are* actually similar to each other.)
 
+# 5.4: Loss functions for regression
+
+- A loss function for regression measures how close a model's predictions are to actual values.
+  - The output of a loss function is always a **non-negative** value. (Meaning it's $\ge 0$)
+  - Smaller loss values indicates the model fits the data better&mdash;i.e. better predictions.
+- Regression models are fitted by selecting the weights that minimize a specified loss function.
+
+Common loss functions for regression include ABSOLUTE LOSS, SQUARED LOSS, HUBER LOSS, and QUANTILE LOSS.
+
+## Absolute Loss
+
+- Absolute loss is **just the residual**&mdash;also called **"prediction error"**&mdash;which is just the (absolute value of the) distance of the predicted value ($\hat y$) from the observed (actual) value ($y$).
+
+```math
+\text{Absolute Loss}
+```
+```math
+L_{abs} (y_i, \hat y_i) = |y_i - \hat y_i|
+```
+
+Absolute loss is also called **"L1 norm loss"**.
+
+### Mean Absolute Error (MAE)
+
+- The mean absolute error (MAE) is the AVERAGE ABSOLUTE LOSS FOR ALL INSTANCES:
+
+```math
+\text{Mean Absolute Error}
+```
+
+<!-- ```math
+\text{MAE} = \frac 1 n \sum_{i=1}^n L_{abs}(y_i, \hat y_i) = \frac 1 n \sum_{i=1}^n |y_i - \hat y_i|
+``` -->
+
+```math
+\text{MAE} = \frac 1 n \sum_{i=1}^n |y_i - \hat y_i|
+```
+
+<!-- ```math
+\text{The average absolute loss for all instances}
+``` -->
+
+## Squared Loss
+
+Squares loss defines loss as the SQUARED PREDICTION ERROR (i.e. SQUARED RESIDUAL), which **places more emphasis on predictions far from observed values**, compared to absolute loss.
+
+Squared loss has NICE MATHEMATICAL PROPERTIES and is A COMMON CHOICE for fitting regression models. E.g., the **least squares method uses squared loss**.
+
+- The squared loss for an instance is the SQUARED DIFFERENCE BTWN OBSERVED ($y_i$) AND PREDICTED ($\hat y_i$) VALUES.
+
+```math
+\text{Squared Loss}
+```
+
+```math
+L_{sq}(y_i, \hat y_i) = (y_i - \hat y_i)^2
+```
+
+The squared loss is also called the **"L2 norm loss"**.
+
+### Mean Squared Error (MSE)
+
+- The mean squared error (MSE) is the AVERAGE SQUARED LOSS FOR ALL INSTANCES.
+
+```math
+\text{Mean Squared Error}
+```
+
+```math
+\text{MSE} = \frac 1 n \sum_{i=1}^n (y_i - \hat y_i)^2
+```
+
+## Huber Loss
+
+Huber Loss is a COMBINATION OF ABSOLUTE & SQUARED LOSS.
+
+- Huber loss is similar to SQUARED LOSS when PREDICTION ERRORS ARE SMALL. (Higher values of $\epsilon$.)
+  - This provides the mathematical benefit of being differentiable at zero, which is beneficial for efficient model fitting.
+- Huber loss is similar to ABSOLUTE LOSS when PREDICTION ERRORS ARE LARGE. (Lower values of $\epsilon$.)
+  - This way, Huber loss is LESS SENSITIVE TO OUTLIERS.
+
+Huber loss is a piecewise function:
+
+```math
+\text{Huber Loss}
+```
+
+```math
+L_{Huber}(y_i, \hat y_i) = \begin{cases}
+  \frac 1 2 (y_i - \hat y_i)^2 & \text{if } |y_i - \hat y_i| \le \epsilon \\
+  \epsilon(|y_i - \hat y_i| - \frac 1 2 \epsilon) & \text{if } | y_i - \hat y_i| > \epsilon
+\end{cases}
+```
+
+- Where $\epsilon > 0$ is a hyperparam that **sets the point where the loss transitions from quadratic (squared loss) to linear (absolute loss)**.
+  - A LARGER value of $\epsilon$ makes Huber loss more similar to SQUARED loss. (And consequently, PREDICTION ERRORS are SMALLER.)
+  - A SMALLER value of $\epsilon$ makes Huber loss more similar to ABSOLUTE loss. (And consequently, PREDICTION ERRORS are LARGER.)
+
+When graphed, the Huber loss function is just a normal quadratic for $-\epsilon \le y-\hat y \le \epsilon$. Then, at the edges of that interval, the function stops changing and just shoots out in a straight line. (It's kinda cool looking&mdash;I like it.)
+
+![ts kinda fire](cs270-zb-ch5.4.7-huber-loss.png)
+
+I guess this is why $\epsilon$ is so weirdly thrown into the linear part of the Huber loss function&mdash;it's to line up the absolute loss function with the squared loss function, such that they have the same value & derivative at $y - \hat y = \pm \epsilon$.
+
+## Quantile loss
+
+In the quantile loss function, **whether an innstance is under- or over-predicted affects the instance's loss**.
+
+The quantile loss function is used for fitting **quantile regression** models, which model/predict a SPECIFIC QUANTILE of the numeric output feature based on the input features. (e.g., a quantile regression model predicts the 10th quantile of insulin level based on glucose level. Another quantile regression model predicts the 90th quantile of insulin level based on glucose level.)
+
+The quantile being predicted affects the loss of under- and over-predictions. (See hyperparameter for equation below.)
+
+The quantile loss for an instance is:
+
+```math
+\text{Quantile Loss}
+```
+
+```math
+L_{quant} (y_i, \hat y_i) = q \max(0, y_i - \hat y_i) + (1 - q) \max(0, -(y_i - \hat y_i))
+```
+
+- Where $0 \lt q \lt 1$ is the **quantile being predicted**.
+  - For predicting SMALL quantiles, OVERPREDICTED instances have higher loss.
+  - For predicting LARGE quantiles, UNDERPREDICTED instances have higher loss.
+  - For quantiles close to 0.5, $q$ and $1-q$ are similar, so the quantile loss is influenced more by the MAGNITUDE OF THE PREDICTION ERROR and less by whether an instance is over/under predicted.
+
+![ts is NOT tuff](cs270-zb-ch5.4.9-quantile-loss.png)
+
+- OVER-predicted: $y_i - \hat y_i < 0$
+- UNDER-predicted: $y_i - \hat y_i > 0$
+
+The overall quantile loss is summarized by the mean quantile loss for all instances.
+
+## Loss functions in sklearn
+
+Sklearn's loss functions come from the `sklearn.metric` module:
+
+- absolute loss: `mean_absolute_error()`.
+- squared loss: `mean_squared_error()`.
+  - To initialize a linear regression model that uses squared loss, use `LinearRegression()`
+- quantile loss: `mean_pinball_loss()`.
+  - (wtf.)
+
+
+Each of these functions take an array of OBSERVED output values and an array of PREDICTED output values. Additional details can be found in the [regression metrics documentation](https://scikit-learn.org/stable/modules/classes.html#regression-metrics).
+
+For fitting w/ Huber loss in sklearn, use `HuberRegressor()`. Parameters and additional details can be found in the [HuberRegressor documentation](https://scikit-learn.org/stable/modules/generated/sklearn.linear_model.HuberRegressor.html).
+
+(Thanks for nothing Zybooks.)

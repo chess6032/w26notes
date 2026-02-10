@@ -612,7 +612,7 @@ Output:
 
 The following Python code loads the full dataset for rentals listed in 2018. The price for rentals in San Jose is predicted using k-nearest neighbors regression from a single input feature, sqft, and then from three input features: sqft, baths, and beds. The price of a rental with 2000 square feet, 2 bedrooms, and 1 bathroom is predicted.
 
-I did not do ts but here were the instructions:
+*I did not do ts but here were the instructions:*
 
 - Modify the code predicting price from square footage to use k=15 nearest neighbors. Re-run the code and examine changes in the prediction line plotted with the data.
 - Compare results from the k-nearest neighbors regression model fit using unstandardized input features and the model fit using standardized input features.
@@ -753,4 +753,142 @@ rent.iloc[knnrUnscaledFit.kneighbors(Xnew)[1][0]]
 ```py
 # Scaled nearest neighbors
 rent.iloc[knnrScaledFit.kneighbors(XnewScaled)[1][0]]
+```
+
+## 5.4: Loss
+
+### 5.4.1: Loss functions for regression in sklearn
+
+The following Python code loads the diabetes data and takes a random sample of 50 instances. A linear regression model is first fitted using squared loss and then fitted using Huber loss. The  $\text{MAE}$
+ and the  $\text{MSE}$
+ are computed for both fitted models.
+
+*I didn't do ts but here were the instructions:*
+
+- Modify the seed to seed=1111 in the second code block. Re-run the code to generate a different random sample of 50 instances.
+- Examine the effect of the outlier on the two estimated linear models.
+- Examine the $\text{MAE}$
+ and the $\text{MSE}$
+ for the two linear regression models fitted to a different sample of instances.
+
+```py
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+
+from sklearn import metrics
+from sklearn.preprocessing import StandardScaler
+from sklearn.linear_model import LinearRegression
+from sklearn.linear_model import HuberRegressor
+```
+```py
+# Load the diabetes dataset
+diabetes_full = pd.read_csv("diabetesNHANES.csv")
+
+# Select a random sample of 50 instances
+seed = 2846
+diabetes = diabetes_full.sample(n=50, random_state=seed)
+diabetes.head()
+```
+```py
+# Define input and output features
+X = diabetes[["glucose"]].values.reshape(-1, 1)
+y = diabetes[["insulin"]].values.reshape(-1, 1)
+```
+```py
+# Initialize and fit linear regression model fitted with least squares
+lrModel = LinearRegression()
+lrModel.fit(X, y)
+```
+```py
+# Show intercept and weight for Glucose
+print(lrModel.intercept_)
+print(lrModel.coef_)
+```
+```py
+# Plot data and predicted regression line
+xVals = np.linspace(min(X) - 1, max(X) + 1, 100)
+
+fig = plt.figure(figsize=(4, 3))
+plt.scatter(diabetes[["glucose"]], diabetes[["insulin"]], color="black")
+plt.plot(
+    xVals, lrModel.predict(xVals), color="#E68143", linewidth=2, label="Squared loss"
+)
+plt.xlabel("Glucose (mg/dl)", fontsize=14)
+plt.ylabel("Insulin (uU/ml)", fontsize=14)
+
+plt.show()
+```
+```py
+# Return the mean absolute error
+print(metrics.mean_absolute_error(y, lrModel.predict(X)))
+```
+```py
+# Return the mean squared error
+print(metrics.mean_squared_error(y, lrModel.predict(X)))
+```
+```py
+# Initialize and fit linear regression model fitted with Huber loss
+hrModel = HuberRegressor()
+hrModel.fit(X, np.ravel(y))
+```
+```py
+# Show intercept and weight for Glucose
+print(hrModel.intercept_)
+print(hrModel.coef_)
+```
+```py
+# Plot data and predicted regression lines
+xVals = np.linspace(min(X) - 1, max(X) + 1, 100)
+
+fig = plt.figure(figsize=(4, 3))
+plt.scatter(diabetes[["glucose"]], diabetes[["insulin"]], color="black")
+plt.plot(
+    xVals,
+    hrModel.predict(xVals),
+    color="#5780DC",
+    linewidth=2,
+    linestyle="dashed",
+    label="Huber loss",
+)
+plt.xlabel("Glucose (mg/dl)", fontsize=14)
+plt.ylabel("Insulin (uU/ml)", fontsize=14)
+
+plt.show()
+```
+```py
+# Return the mean absolute error for the model fit with Huber loss
+print(metrics.mean_absolute_error(y, hrModel.predict(X)))
+```
+```py
+# Return the mean squared error for the model fit with Huber loss
+print(metrics.mean_squared_error(y, hrModel.predict(X)))
+```
+```py
+# Plot data and both predicted regression lines
+xVals = np.linspace(min(X) - 1, max(X) + 1, 100)
+
+fig = plt.figure(figsize=(4, 3))
+plt.scatter(diabetes[["glucose"]], diabetes[["insulin"]], color="black")
+plt.plot(
+    xVals, lrModel.predict(xVals), color="#E68143", linewidth=2, label="Squared loss"
+)
+plt.plot(
+    xVals,
+    hrModel.predict(xVals),
+    color="#5780DC",
+    linewidth=2,
+    linestyle="dashed",
+    label="Huber loss",
+)
+plt.xlabel("Glucose (mg/dl)", fontsize=14)
+plt.ylabel("Insulin (uU/ml)", fontsize=14)
+plt.legend(
+    bbox_to_anchor=(1.05, 1.0),
+    loc="upper left",
+    fontsize=14,
+    title="Linear model fitted with:",
+)
+
+plt.show()
 ```
