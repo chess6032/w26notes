@@ -174,12 +174,12 @@ The term it adds is thus:
 ```
 
 ```math
-\alpha || \mathbf w || _2 ^2 = \alpha \sum_{j=1}^p w_j^2
+\alpha \|\mathbf w\| _2 ^2 = \alpha \sum_{j=1}^p w_j^2
 ```
 
 - Where $\alpha \ge 0$ is a hyperparameter, and $\mathbf w \in \mathbb R^p$ represents your weights associated with input features&mdash;$w_j$ corresponds to feature $x_j$.
   - **Increasing the value of $\alpha$ increases the amount of regularization.** (Remember: With more regularization, estimated weights shrink toward zero.)
-- $|| \space \space ||_2 ^2$ is the mathematical notation for the "L2 norm" of a vector, meaning the sum of each component squared.
+- $\| \space \space \|_2 ^2$ is the mathematical notation for the "L2 norm" of a vector, meaning the sum of each component squared.
 
 Hence, the final loss function is thus:
 
@@ -206,11 +206,11 @@ LASSO adds this term to the loss function:
 ```
 
 ```math
-\alpha || \mathbf w || _1 = \alpha \sum_{j=1}^p |w_j|
+\alpha \| \mathbf w \| _1 = \alpha \sum_{j=1}^p |w_j|
 ```
 
 - Where $\alpha \ge 0$ is a hyperparam, and $\mathbf w \in \mathbb R^p$ weights associated w/ input features.
-- $||\space\space||_1$ is the mathematical notation for "L1 norm" of a vector, meaning the sum of the absolute values of each component.
+- $\|\space\space\|_1$ is the mathematical notation for "L1 norm" of a vector, meaning the sum of the absolute values of each component.
 
 Thus, the final loss function looks like this:
 
@@ -240,7 +240,7 @@ Here's the term it adds:
 ```
 
 ```math
-\alpha \Big( \lambda ||\mathbf w||_1 + (1-\lambda) ||\mathbf w||_2 ^2 \Big)
+\alpha \Big( \lambda \|\mathbf w\|_1 + (1-\lambda) \|\mathbf w\|_2 ^2 \Big)
 ```
 
 - $\alpha \ge 0$ controls the **regularization strength overall**.
@@ -249,7 +249,7 @@ Here's the term it adds:
   - LOWER VALUES favor RIDGE regression. When $\lambda = 0$, elastic net becomes equivalent to ridge regression.
   - Hence, **tuning $\lambda$ determines the best ratio between L1 and L2 regularization.**
 
-> Note: Sometimes, Elastic Net's regularization term is written as $\alpha_1 ||\mathbf w||_1 + \alpha_2||\mathbf w||_2^2$. So instead of having one hyperparam represent the strength of regularization overall and another to represen the ratio of L1 to L2, L1 and L2 each just get their own independent hyperparameters.
+> Note: Sometimes, Elastic Net's regularization term is written as $\alpha_1 \|\mathbf w\|_1 + \alpha_2\|\mathbf w\|_2^2$. So instead of having one hyperparam represent the strength of regularization overall and another to represen the ratio of L1 to L2, L1 and L2 each just get their own independent hyperparameters.
 
 Hence, the final loss function is thus:
 
