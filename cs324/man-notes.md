@@ -321,21 +321,103 @@ dup(2) explains three dup functions: `dup()`, `dup2()`, and `dup3()`. These are 
 ### Synopsis
 
 - INCLUDE: `<unistd.h>`
-- SIGNATURE: `int dup2(int dest_fd, int modified_fd);`
-  - (Close `modified_fd`, and open it again to point at the same description as `dest_fd`.)
+- SIGNATURE: `int dup2(int ref_fd, int redir_fd);`
+  - (Close `redir_fd`, and open it again to point at the same description as `ref_fd`.)
 - RETURNS:
-  - Success: Returns new FD (`modified_fd`).
+  - Success: Returns new FD (`redir_fd`).
   - Error: `-1` (and sets `errno`.)
 
 ### Parameters
 
-- In the man pages, `dest_fd` ("destination FD") is called `oldfd` and `modified_fd` is called `newfd`. I changed the names to make them more descriptive.
+- In the man pages, `ref_fd` ("reference FD") is called `oldfd` and `redir_fd` ("redirected FD") is caflled `newfd`. I changed the names to make them more descriptive.
 
 ### Notes
 
-- If `dest_fd` is not a valid FD, then the call fails, and `modified_fd` is NOT closed.
-- If `dest_fd` is a valid FD and `modified_fd` has the same value, then `dup2()` does nothing&mdash;but still returns `modified_fd`.
-- If the FD passed in as `modified_fd` was previously opened, it is closed before being reused in `dup2()`.
+- If `ref_fd` is not a valid FD, then the call fails, and `redir_fd` is NOT closed.
+- If `ref_fd` is a valid FD and `redir_fd` has the same value, then `dup2()` does nothing&mdash;but still returns `redir_fd`.
+- If the FD passed in as `redir_fd` was previously opened, it is closed before being reused in `dup2()`.
   - This close is performed silently&mdash;any errors during the close are not reported by `dup2()`.
-- The steps of closing and reusing the FD passed in as `modified_fd` are performed atomically.
+- The steps of closing and reusing the FD passed in as `redir_fd` are performed atomically.
   - (This avoids race conditions.)
+
+# Lab 1
+
+## pipe(2)
+
+### Synopsis
+
+- INCLUDE: `<unistd.h>`
+- SIGNATURE:
+  - `int pipe(int pipefd[2])`
+    - `pipefd` is a 2-element integer array that is filled with the read/write FDs for the pipe.
+      - `pipefd[0]` refers to the pipe's **READ end**.
+      - `pipefd[1]` refers to the pipe's **WRITE end**.
+- RETURN:
+  - Success: `0`.
+  - Failure: `-1`, with `errno` set to indicate the error.
+    - On failure, `pipefd` is left unchanged.
+
+### Notes
+
+- To build a pipe with flags, use `pipe2()`: `int pipe2(int pipefd[2], int flags)`. 
+  - With `flags` = `0`, `pipe2()` has the same effect as `pipe()`.
+- pipe(2) actually has examples for building a pipe. That's dope!
+
+## `wait()` - wait(2)
+
+## `waitpid()` - wait(2)
+
+Wait for a state change from a child. "State change" includes:
+
+- Child was terminated.
+- Child was stopped by signal.
+- Child was resumed by signal.
+
+In the case of a terminated child, wait(2) functions allow the system to reap the child's resources. Without waiting, the terminated child remains a zombie.
+
+### Synopsis
+
+```c
+pid_t waitpid(pid_t pid, int *_Nullable wstatus, int options)
+```
+
+- INCLUDE: `<sys/wait.h>`
+- PARAMETERS:
+  - `pid`: 
+    - $\text{pid} < -1$: wait for any child process whose **pgid is equal to abs(`pid`)**.
+    - $\text{pid} = -1$: wait for **any** child process.
+    - $\text{pid} = 0$: wait for any child process who **shares a pgid with the calling process**.
+    - $\text{pid} > 0$: wait for the **child whose pid is `pid`**.
+  - `wstatus`: Filled w/ information. May be `NULL`.
+    - The value of an integer passed in will be filled w/ the child's exit status.
+    - (You'll learn more about how to extract other information in Lab 2.)
+  - `options`: Flags and stuff. See man page for more details.
+- RETURN:
+  - Success: **pid of child** whose state changed.
+    - (May return `0` if ran with `WNOHANG` and there are child(ren) with `pid` that have not changed state.)
+  - Failure: `-1`, and sets `errno`.
+
+### Notes
+
+- I think `pid_t` is just an integer type?
+
+## setpgid(2)
+
+### Synopsis
+
+```c
+int setpgid(pid_t pid, pid_t pgid)
+```
+
+- INCLUDE: `<unistd.h>`
+- PARAMETERS:
+  - `pid`: The PID of the **process you're assigning a pgid to**.
+  - `pgid`: The **PGID you're giving the process**.
+- RETURNS:
+  - Success: `0`.
+  - Error: `-1`, and `errno` is set.
+
+## exec(3)
+
+## strcmp(3)
+
