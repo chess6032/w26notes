@@ -892,3 +892,154 @@ plt.legend(
 
 plt.show()
 ```
+
+## 5.7 LAB: kNN regression using sklearn
+
+The `diamonds` dataset contains the price, cut, color, and other characteristics of a sample of nearly 54,000 diamonds. This data can be used to predict the price of a diamond based on its characteristics. Use scikit-learn's `KNeighborsRegressor()` function to predict the price of a diamond from the diamond's `carat` and `table` values.
+
+- Import needed packages for regression.
+- Initialize and fit a k-nearest neighbor regression model using a Euclidean distance metric and k=12.
+- Predict the price of a diamond with the user-input `carat` and `table` values.
+- Find the distances and indices of the 12 nearest neighbors for the user-input instance
+
+```py
+import pandas as pd
+import numpy as np
+from sklearn.neighbors import KNeighborsRegressor
+
+# Silence warning from sklearn
+import warnings
+warnings.filterwarnings("ignore")
+
+# Input feature values for a sample instance
+carat = float(input())
+table = float(input())
+
+diamonds = pd.read_csv("diamonds.csv")
+
+# Define input and output features
+X = diamonds[["carat", "table"]]
+y = diamonds["price"]
+
+# Initialize a k-nearest neighbors regression model using a Euclidean distance and k=12 
+diamondKnnr = KNeighborsRegressor(n_neighbors=12, p=2)
+
+# Fit the kNN regression model to the input and output features
+diamondKnnr.fit(X, y)
+
+# Create array with new carat and table values
+Xnew = [[carat, table]]
+
+# Predict the price of a diamond with the user-input carat and table values
+prediction = diamondKnnr.predict([[carat, table]])
+print("Predicted price is", np.round(prediction, 2))
+
+# Find the distances and indices of the 12 nearest neighbors for the new instance
+neighbors = diamondKnnr.kneighbors(Xnew)
+print("Distances and indices of the 12 nearest neighbors are", neighbors)
+```
+
+## 5.8 LAB: Regression metrics using sklearn
+
+The `diamonds` dataset contains the price, cut, color, and other characteristics of a sample of nearly 54,000 diamonds. This data can be used to predict the price of a diamond based on its characteristics. Using a sample of the dataset and scikit-learn's `LinearRegression()` function, predict the price of a diamond from the diamond's carat and table values. Using scikit-learn's metrics module, calculate the various regression metrics for the model.
+
+- Initialize and fit a multiple linear regression model.
+- Use the model to predict the prices of instances in `X`.
+- Calculate mean absolute error for the model.
+- Calculate mean squared error for the model.
+- Calculate root mean squared error for the model.
+- Calculate R-squared for the model.
+
+```py
+import numpy as np
+import pandas as pd
+
+from sklearn import metrics
+from sklearn.linear_model import LinearRegression
+
+# Input the random state
+rand = int(input())
+
+# Load sample set by a user-defined random state into a dataframe
+diamonds = pd.read_csv("diamonds.csv").sample(n=500, random_state=rand)
+
+# Define input and output features
+X = diamonds[["carat", "table"]]
+y = diamonds["price"]
+
+# Initialize and fit a multiple linear regression model
+linReg = LinearRegression()
+linReg.fit(X, y)
+
+# Use the model to predict the classification of instances in X
+mlrPredY = linReg.predict(X)
+
+# Calculate mean absolute error for the model
+mae = metrics.mean_absolute_error(y, mlrPredY)
+print("MAE:", round(mae, 3))
+
+# Calculate mean squared error for the model
+mse = metrics.mean_squared_error(y, mlrPredY)
+print("MSE:", round(mse, 3))
+
+# Calculate root mean squared error for the model
+rmse = metrics.root_mean_squared_error(y, mlrPredY)
+print("RMSE:", round(rmse, 3))
+
+# Calculate R-squared for the model
+r2 = metrics.r2_score(y, mlrPredY)
+print("R-squared:", round(r2, 3))
+```
+
+## 5.9 LAB: Elastic net regression using sklearn
+
+The `diamonds` dataset contains the price, cut, color, and other characteristics of a sample of nearly 54,000 diamonds. This data can be used to predict the price of a diamond based on its characteristics. Use scikit-learn's ElasticNet() function to predict the price of a diamond from the diamond's `carat` and `table` values.
+
+- Import needed packages for regression.
+- Initialize and fit a model using elastic net regression with a regularization strength of `6`, and `l1_ratio=0.4`.
+- Get the estimated intercept weight.
+- Get the estimated weights of the `carat` and `table` features.
+- Predict the price of a diamond with the user-input standardized `carat` and `table` values.
+
+```py
+import numpy as np
+import pandas as pd
+# import matplotlib.pyplot as plt
+# from mpl_toolkits import mplot3d
+
+from sklearn.preprocessing import StandardScaler
+from sklearn.linear_model import ElasticNet
+from sklearn.linear_model import LinearRegression
+
+# Input standardized feature values for a sample instance
+carat = float(input())
+table = float(input())
+
+diamonds = pd.read_csv("diamonds.csv")
+
+# Define input and output features
+X = diamonds[["carat","table"]]
+y = diamonds[["price"]]
+
+# Scale the input features
+scaler = StandardScaler()
+X = scaler.fit_transform(X)
+
+# Initialize a model using elastic net regression with a regularization strength of 6, and l1_ratio=0.4
+elNet = ElasticNet(alpha=6, l1_ratio=0.4)
+
+# Fit the elastic net model to the input and output features
+elNet.fit(X, y)
+
+# Get estimated intercept weight
+intercept = elNet.intercept_
+print("Intercept is", np.round(intercept, 3))
+
+# Get estimated weights for carat and table features
+coefficients = elNet.coef_
+print("Weights for carat and table features are", np.round(coefficients, 3))
+
+# Predict the price of a diamond with the user-input carat and table values
+prediction = elNet.predict([[carat, table]])
+print("Predicted price is", np.round(prediction, 2))
+```
