@@ -549,7 +549,7 @@ L_{Huber}(y_i, \hat y_i) = \begin{cases}
 
 When graphed, the Huber loss function is just a normal quadratic for $-\epsilon \le y-\hat y \le \epsilon$. Then, at the edges of that interval, the function stops changing and just shoots out in a straight line. (It's kinda cool looking&mdash;I like it.)
 
-![ts kinda fire](cs270-zb-ch5.4.7-huber-loss.png)
+![ts kinda fire](images/cs270-zb-ch5.4.7-huber-loss.png)
 
 I guess this is why $\epsilon$ is so weirdly thrown into the linear part of the Huber loss function&mdash;it's to line up the absolute loss function with the squared loss function, such that they have the same value & derivative at $y - \hat y = \pm \epsilon$.
 
@@ -576,7 +576,7 @@ L_{quant} (y_i, \hat y_i) = q \max(0, y_i - \hat y_i) + (1 - q) \max(0, -(y_i - 
   - For predicting LARGE quantiles, UNDERPREDICTED instances have higher loss.
   - For quantiles close to 0.5, $q$ and $1-q$ are similar, so the quantile loss is influenced more by the MAGNITUDE OF THE PREDICTION ERROR and less by whether an instance is over/under predicted.
 
-![ts is NOT tuff](cs270-zb-ch5.4.9-quantile-loss.png)
+![ts is NOT tuff](images/cs270-zb-ch5.4.9-quantile-loss.png)
 
 - OVER-predicted: $y_i - \hat y_i < 0$
 - UNDER-predicted: $y_i - \hat y_i > 0$

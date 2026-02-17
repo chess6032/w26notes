@@ -141,7 +141,7 @@ COMMON CLASSIFICATION METRICS:
 
 In binary classifications, we can consider outcomes to be POSITIVE (me likey) or NEGATIVE (me no likey). Furthermore, a classifer's prediction can either be correct (TRUE) or incorrect (FALSE). A confusion matrix compares predicted classifications against observed classifications in a table (seen below in my bad drawing).
 
-![Confusion matrix](cs270-zybooks-3.2-confusion-matrix.png)
+![Confusion matrix](images/cs270-zybooks-3.2-confusion-matrix.png)
 
 More specifically, each cell is the *number* of true negatives (TN), num of true positives (TP), num of false negatives (FN), and num of false positives (FP).
 
@@ -188,7 +188,7 @@ $$\text{Recall} = \frac{\text{num corect positive predictions}}{\text{num positi
 
 Here's a visualization of the formulas for accuracy (ACC), precision (PREC), and recall (REC). The denominators are circled, and the numerators are underlined.
 
-![Isn't this neat??](cs270-zybooks-3.2-confusion-matrix-acc-prec-rec.png)
+![Isn't this neat??](images/cs270-zybooks-3.2-confusion-matrix-acc-prec-rec.png)
 
 ## $F_1$-score and $F_\beta$-score
 
@@ -277,7 +277,7 @@ Find code examples [here](./code-examples/cs270-zybooks-ch3-code.md).
   - **Prediction error plot**
   - **Partial dependence plot**
 
-![Types of plots for classification & regression models](cs270-zybooks-3.3-plot-types.png)
+![Types of plots for classification & regression models](images/cs270-zybooks-3.3-plot-types.png)
 
 ### Prediction error plot (i.e. risidual plot)
 
