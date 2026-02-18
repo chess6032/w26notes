@@ -54,3 +54,7 @@ The notes listed some common functional pieces in a web app tool chain, which I 
 | Bash script (`deployReact.sh`) | Deployment. |  
 
 You don't have to fully understand each of these pieces, but the more you know about them the more you can optimize your development efforts, the notes say.
+
+## Up next
+
+The next topic is [Vite](Vite.md), one of the parts of our React project's toolchain.
