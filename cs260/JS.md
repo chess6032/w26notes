@@ -1,0 +1,165 @@
+# JavaScript notes
+
+- JavaScript (JS) is officially called ECMAScript. That's dumb.
+- PROPERTIES:
+  - Weakly typed.
+  - Interpreted.
+
+## Syntax
+
+- Keyword for **defining functions**: `function`.
+- Keyword for **declaring variables**: `let`.
+- Semi-colons at the end of statements is standard...but not technically required.
+
+## Important functions and stuff
+
+- `console.log()` for printing to the console.
+
+## Importing JS in HTML
+
+### Internal `<script>` element
+
+```html
+<script>
+    function sayGoodbye() {
+        alert("Goodbye");
+    }
+</script>
+```
+
+### External script
+
+```html
+<head>
+    ...
+
+    <script src="path/to/file.js"></script>
+
+    ...
+</head>
+```
+
+### Inline attribute handler
+
+```html
+<script>
+    let i = 1;
+</script>
+<button onclick="alert(`i = ${i++}`)">counter</button>
+```
+
+- Special elements like `onclick` automatically create event listeners for diff DOM events, and run code given for said attribute's value.
+
+## Debugging JS
+
+- Printing to console w/ `console.log()`.
+  - Console output is visible w/in browser debuggers.
+- Debugger w/in a browser.
+  - Allows for breakpoints & stuff.
+
+## Node.js
+
+Node.js, oft called just "Node", is the first successful application for **deploying JS outside a browser** (thus allowing JS to be used in all levels of the tech stack).
+
+Node.js **runs off of V8**, which is the JS interpreter/execution engine developed by Google (employed in all Chromium values).
+
+Node.js was created by Ryan Dahl, and is currently maintained by the [Open.js foundation](https://openjsf.org/).
+
+### Usage
+
+After installing, you can use Node.js **within your terminal w/ the `node` command**.
+
+### Installing packages w/ NPM
+
+Using packages in your code takes two steps:
+
+1. Install package to your machine via **Node Package Manager** (NPM).
+2. Include a **`require` statement** in your code that references the package.
+
+(NPM is automatically installed when you install Node.js.)
+
+There's actually a secret step 0. Before using NPM, you must **initialize your code to use NPM** by running **`npm init`** in the directory where your code will be stored. (To make initialization go faster, you can run `npm init -y` to say "yes" to all the set up questions.)
+
+#### package.json
+
+After initializing w/ `npm init`, you'll find a `package.json` file in your directory. It contains three main things: 
+
+1. **Metadata** about your project. (e.g., name, default entry JS file, etc.)
+2. **Commands (i.e. scripts)** that you can execute for running/testing/distributing/etc. your code.
+3. **Packages** your project depends on.
+
+When `package.json` is first created, it has some default metadata & a simple placeholder script that runs the echo command when you run `npm run test` from the console. 
+
+#### Installing packages
+
+To add/remove a package to/from your code, use these commands in your NPM-initialized directory:
+
+- `npm install <package>`
+- `npm uninstall <package>`
+
+#### What to include in your repo
+
+NPM creates a folder `node_modules` that you do NOT want to include in source control system , as it gets very large:
+
+- **Add `node_modules/` to your gitignore**
+
+`node_modules` contains the actual JS files for your package and all its dependent packages. **All its contents can be rebuilt, however, w/ `paackage-lock.json`:** 
+
+- When you clone your repo's source code to a new location, **run `npm install` in the project directory** to make NPM download all packages previously included in `node_modules/`.
+
+`package-lock.json` tracks the version of each package you installed.
+
+### Successors and competitors
+
+Ryan Dahl, creator of Node.js, has created a successor called [Deno](https://deno.land/), meant to be more compliant w/ modern ECMAScript & provided significantly better performance.
+
+There are also competitor JS applications. The notes mention one called [Bun](https://bun.sh/).
+
+## Debugging Node.js
+
+### Intro to VS Code Debugger
+
+**Use VS Code's debugger** to debug JS on your machine. Execute the `Start Debugging` command by **pressing `F5`**.
+
+The first time you debug your JS file, it will ask you what debugger/engine to use. **Select `Node.js`**. This will run your JS code w/ `node`.
+
+Runtime keyboard shortcuts:
+
+- `F10`: Step over.
+- `F11`: Step in.
+- `F5`: Continue running from current line.
+- `SHIFT` + `F5`: Stop debugging.
+
+### `node --watch`
+
+By adding the `--watch` option when running your JS code w/ `node`, Node.js will automatically reload (restart and update the browser) when changes are saved *during debugging*.
+
+To implement this in the VS Code Debugger, **modify `launch.json`**:
+
+- Press `CTRL` + `SHIFT` + `P` to open the command pallette.
+- Type to search `Debug: Add configuration` and run.
+- Select the `Node.js` option.
+  - This will create a launch configuration in `./.vscode/launch.json`.
+- Modify your `"configurations"`: **Add `"--watch"` to the `"runtimeArgs"` list.**
+
+E.g.:
+
+```json
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "type": "node",
+      "request": "launch",
+      "name": "Launch Program",
+      "skipFiles": ["<node_internals>/**"],
+      "runtimeArgs": ["--watch"], /* <--- LOOKIE HERE */ 
+      "program": "${workspaceFolder}/main.js"
+    }
+  ]
+}
+```
+
+## Up next
+
+The next topic is [Web Frameworks](Web-frameworks.md).
