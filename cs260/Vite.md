@@ -44,3 +44,7 @@ In an NPM-initialized directory:
 For our project, we run `deployReact.sh`, a Bash script, to deploy our web app to our server.
 
 `deployReact.sh` **runs `npm run build`** and then **deploys the resulting `dist/` directory** to your production server.
+
+## Up next
+
+The next topic is [React](React.md).

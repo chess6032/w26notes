@@ -363,9 +363,7 @@ dup(2) explains three dup functions: `dup()`, `dup2()`, and `dup3()`. These are 
   - With `flags` = `0`, `pipe2()` has the same effect as `pipe()`.
 - pipe(2) actually has examples for building a pipe. That's dope!
 
-## `wait()` - wait(2)
-
-## `waitpid()` - wait(2)
+## wait(2)
 
 Wait for a state change from a child. "State change" includes:
 
@@ -375,7 +373,9 @@ Wait for a state change from a child. "State change" includes:
 
 In the case of a terminated child, wait(2) functions allow the system to reap the child's resources. Without waiting, the terminated child remains a zombie.
 
-### Synopsis
+(I think the only state change we care ab in this class is termination.)
+
+### `waitpid()` Synopsis
 
 ```c
 pid_t waitpid(pid_t pid, int *_Nullable wstatus, int options)
@@ -391,15 +391,59 @@ pid_t waitpid(pid_t pid, int *_Nullable wstatus, int options)
   - `wstatus`: Filled w/ information. May be `NULL`.
     - The value of an integer passed in will be filled w/ the child's exit status.
     - (You'll learn more about how to extract other information in Lab 2.)
-  - `options`: Flags and stuff. See man page for more details.
+  - `options`: Flags and stuff. (See below.)
+    - Set to `0` if you don't want to add any flags.
 - RETURN:
   - Success: **pid of child** whose state changed.
     - (May return `0` if ran with `WNOHANG` and there are child(ren) with `pid` that have not changed state.)
   - Failure: `-1`, and sets `errno`.
 
-### Notes
+### Simplest use
 
-- I think `pid_t` is just an integer type?
+`pid_t pid = waitpid(-1, NULL, 0)`: It waits until any child is ready to be terminated and reaps it, and sets `pid` to the reaped child's PID. (Idk what would happen in the case of other state changes.) This has the same effect as `wait(NULL)`.
+
+### Options
+
+- `WNOHANG`: Return immediately if no child has exited.
+- `WUNTRACED`: Also return if a child has stopped (but not traced via ptrace(2)...or smth).
+  - Even if this is not specified, status for traced children which have been stopped is still provided. (I assume provided in `wstatus`? Idk.)
+- `WCONTINUED`: Also return if a stopped child has been resumed by delivery of `SIGCONT`.
+
+### Retrieving info (`wstatus`)
+
+If `wstatus` is not `NULL`, then `wait()`/`waitpid()` fill the int it points to w/ status information.
+
+From there, you can use these (function) macros to inspect it. For each of these functions, you'll pass in the *value* `wstatus` points to (which I represent w/ `*wstatus`).
+
+<!-- - (bool) `WIFEXITED(*wstatus)`: returns true if **child terminated normally**.
+  - i.e., child was terminated by calling exit(3) or _exit(2), or by returning from `main()`.
+- (char) `WEXITSTATUS(*wstatus)`: returns **exit status of child**.
+  - Consists of the least sig 8 bits of: the `status` arg that the child specified in a call to exit(3) or _exit(2), or `main()`'s return value.
+  - Should **only use if `WIFEXITED` returned true**.
+- (bool) `WIFSIGNALED(*wstatus)`: Returns true if the child was ***terminated* by a signal**.
+- (int?) `WTERMSIG(*wstatus)`: Returns the **number of the signal** that cause the child to terminate.
+  - Should **only use if `WIFSIGNALED` returned true**.
+- (bool) `WCOREDUMP(*wstatus)`: Returns true if the **child produced a core dump**.
+  - (See core(5).)
+  - Should **only use if `WIFSIGNALED` returned true**.
+  - (This macro is not available on some UNIX implementations, so you should enclose its use inside `#ifdef WCOREDUMP ... #endif`.)
+- (bool) `WIFSTOPPED(*wstatus)`: Returns true if the child was ***stopped* by delivery of signal**.
+  - Possible only if the wait(2) call was done using `WUNTRACED`, OR when the child is *being* traced (via ptrace(2)).
+- (int?) `WSTOPSIG(*wstatus)`: Returns the **number of the signal** which caused the child to stop.
+  - Should only use if `WIFSTOPPED` returned true.
+- (bool) `WIFCONTINUED(*wstatus)`: Returns true if the child process was resumed by delivery of `SIGCONT`. -->
+
+| Macro          | Return type | Return      | Notes |  
+| -----          | ----------- | ----------- | ----- |  
+| `WIFEXITED`    | bool        | true if **child terminated normally**.                          | "Normal" termination: child was terminated by calling exit(3) or _exit(2), or by returning from `main()`. |  
+| `WEXITSTATUS`  | char        | the **exit status of child**.                                   | Should **only use if `WIFEXITED` returned true**. <br/> Return consists of the least sig 8 bits of: the `status` arg that the child specified in a call to exit(3) or _exit(2), or `main()`'s return value. |  
+| `WIFSIGNALED`  | bool        | true if the child was ***terminated* by a signal**.             | |  
+| `WTERMSIG`     | int?        | the **number of the signal** that cause the child to terminate. | Should **only use if `WIFSIGNALED` returned true**. |  
+| `WCOREDUMP`    | bool        | true if the **child produced a core dump**. (See core(5).)      | Should **only use if `WIFSIGNALED` returned true**. <br> (This macro is not available on some UNIX implementations, so you should enclose its use inside `#ifdef WCOREDUMP ... #endif`.) |  
+| `WIFSTOPPED`   | bool        | true if the child was ***stopped* by delivery of signal**.      | A child being stopped by a signal is possible only if the wait(2) call was done using `WUNTRACED`, or when the child is being traced (via ptrace(2)). |  
+| `WSTOPSIG`     | int?        | the **number of the signal** which caused the child to stop.    | Should **only use if `WIFSTOPPED` returned true.** |  
+| `WIFCONTINUED` | bool        | true if the child process was resumed by delivery of `SIGCONT`. | |  
+
 
 ## setpgid(2)
 
