@@ -193,3 +193,101 @@ DISADVANTAGES
 - Splits occur only on one feature.
   - If data has correlated features, prepare for deep trees.
     - (You'll end up w/ a stair-step pattern.)
+
+# 6.2: Decision Tree algorithms
+
+## Divide-and-conquer
+
+"Divide-and-conquer", in this context, refers to **top-down, recursive algorithms on trees**.
+
+- In divide-and-conquer algorithms for training decision trees, we **start at the root node and SPLIT THE DATASET on the INPUT FEATURE that IMPROVES PREDICTION THE MOST**.
+  - The splitting process is then repeated on each child&mdash;unless no further improvement in prediction can be made.
+  - Ig "improves prediction the most" just means the split that results in the lowest impurity? Idk.
+
+### Basic divide-and-conquer Algorithm
+
+Uhhh ig it might look smth like this:
+
+$\text{Grow}(T):$  
+$\text{for every possible split } s:$  
+$\text{compare } s \text{ to best performing split so far, } s_{best} \text{. update if better.}$  
+$\text{end for}$  
+$\text{split } T \text{ by } s_{best} \text{ into } T_1, T_2, \dots, T_n$  
+$\text{for } T_i \text{ in } 1 \le i \le n:$  
+$\text{Grow}(T_i)$  
+$\text{end for}$  
+$\text{end Grow}$  
+
+## Iterative Dichotomiser 3 (ID3)
+
+ID3 is a divide-and-conquer algorithm for creating decision tree classifiers.
+
+- At each node, ID3 chooses the split that results in the **lowest ENTROPY**.
+- ID3 grows a complete tree where at every leaf you know EITHER:
+  - the **leaf is pure**, 
+  - OR **every input feature has been used** in the leaf's decision path.
+- All **features must be converted to CATEGORICAL values**.
+  - Hence, **ID3 only works for CLASSIFICATION**.
+  - (ID3 is old (1986). It is designed to work w/in the computing constraints of its time.)
+
+## C5.0
+
+### ID3 &rightarrow; C4.5
+
+C4.5 is a DT algorithm by the same dev of ID3.
+
+The textbook alleges that C4.5 was one of the most successful ML algorithms in the lat 90's and early 2000s. (Some official people in suits would even put it in [the top ten!](http://www.cs.umd.edu/~samir/498/10Algorithms-08.pdf))
+
+C4.5 improvded on ID3 by:
+
+- allowing use of NUMERICAL FEATURES.
+- using MISSING DATA.
+- assigning COSTS to features.
+  - A feature's cost is a PENALTY that makes a feature LESS LIKELY TO BE SELECTED for a decisionnode.
+- PRUNING TREES after creation.
+- converting the final DT to a RULESET: A set of IF-ELSE STATEMENTS that predict an instance.
+  - "A ruleset's statements can be rearranged in a method similar to pruning but with different outcomes." (Huh?)
+
+### C4.5 &rightarrow; C5.0
+
+C5.0 added:
+
+- Support for weighting misclassifications (false pos vs. false negs) differently.
+- BOOSTING: fits multiple DTs in sequence. Misclassifications in early trees are weighted more heavily when training later trees. 
+- WINNOWING: estimates the increase in error rate if a feature is removed. Then, before growing, features that have small effects on error rate are removed. 
+
+### C5.0 in sklearn
+
+SIKE! Sklearn doesn't have an implementation of C5.0, but it is available through ML packages in R.
+
+## Classification and Regression Trees (CART)
+
+CART is a divide-and-conquer algorithm that builts DTs for both **CLASSIFICATION AND REGRESSION** probs using both **NUMERICAL AND CATEGORICAL FEATURES.**
+
+It was first published in 1984. (JORJOR WELL REFERENCE!)
+
+- CART builds a **BINARY TREE**. 
+  - (At every node, the dataset is split into TWO groups.)
+- CART may use **ANY METRIC** for determing the best split at each node.
+  - Classification: Gini impurity, entropy, log-loss, etc.
+  - Regression: MSE, MAE, etc.
+- Predictions:
+  - Classification: **Most common output** for each leaf's training instances.
+  - Regression: **mean (or median) of each leaf's instances' outputs**.
+- CART **prunes after growing**, using cost-complexity pruning.
+
+### CART in sklearn
+
+**Sklearn implements DTs via CART**, since it can do both classf. and regrsn. However, in either case, **CATEGORICAL input features must be CONVERTED TO DUMMY VARIABLES before use.**
+
+## Comparison of algorithms
+
+| Algorithm | Year released | Model type                   | Input feature type       | Pruning supported?| Rulesets as output? | Available in sklearn? |  
+| --------- | ------------- | ---------------------------- | ------------------------ | ----------------- | ------------------- | --------------------- |  
+| ID3       | 1983          | Classification               | Categorical              | ✕                 | ✕                  | ✕                     |  
+| C5.0      | 2011          | Classification               | Categorical OR numerical | ✓                 | ✓                  | ✕                     |  
+| CART      | 1984          | Classification OR regression | Categorical OR numerical | ✓                 | ✕                  | ✓                     |  
+
+All algorithms discussed in this chapter are divide-and-conquer algorithms. They are also all **greedy algorithms**, meaning they solve a problem in multiple steps, taking the best option at each step.
+
+Greedy algorithms are **not guaranteed to find the overall optimal solution**. They are used for find **SUBOPTIMAL SOLUTIONS for problems that are TOO EXPENSIVE to find the optimal solution.**
