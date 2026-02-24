@@ -103,6 +103,7 @@ You can put in-line CSS in your HTML parts in JSX if you're insane, or you can a
 - To use an external CSS file, you would include `import 'path/to/css.css';` statement at the top of your code.
   - The styling now applies like normal, with the only difference being that in your JSX code you must **use `className` instead of `class`** for elements to be targeted by class selectors.
     - (This is because "class" is already a keyword in JavaScript.)
+  - (If the css file is in the same directory as your jsx file, start your path with `./`)
 
 ## Child components
 
@@ -145,7 +146,7 @@ The React framework uses each component's properties and states to determine the
 
 # Routing
 
-Routing is the process of modifying a webpage to give the appearance of loading different pages.
+Routing is the process of using JS to modify a webpage at runtime to give the appearance of loading different pages.
 
 ## `react-router-dom`
 
