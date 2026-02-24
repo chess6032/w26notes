@@ -444,7 +444,6 @@ From there, you can use these (function) macros to inspect it. For each of these
 | `WSTOPSIG`     | int?        | the **number of the signal** which caused the child to stop.    | Should **only use if `WIFSTOPPED` returned true.** |  
 | `WIFCONTINUED` | bool        | true if the child process was resumed by delivery of `SIGCONT`. | |  
 
-
 ## setpgid(2)
 
 ### Synopsis
