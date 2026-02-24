@@ -179,6 +179,122 @@ Heart disease is one of the leading causes of death in the United States. Data f
 
 The heart dataset contains data from a sample of medical records in the United States, Hungary, and Switzerland. For each patient, `target=0` if the patient does not have heart disease and `target=1` if the patient does have heart disease.
 
-- Initialize a decision tree classifier model `DTCHeart` using entropy as the impurity measure.
+- Initialize a decision tree classifier model `heartDTC` using entropy as the impurity measure.
 
-The code provided imports the dataset and packages, creates input and output feature sets, and prints the parameters of `DTCHeart`.
+The code provided imports the dataset and packages, creates input and output feature sets, and prints the parameters of `heartDTC`.
+
+```py
+# Import packages and functions
+import numpy as np
+import pandas as pd
+from sklearn.tree import DecisionTreeClassifier
+
+# Load the heart dataset
+heart = pd.read_csv("heart.csv")
+
+# Create a dataframe X containing input features maximum heart rate and cholesterol
+X = heart[["thalach", "chol"]]
+
+# Create a dataframe y containing output feature target
+y = heart[["target"]]
+
+# -----------------------------------------
+# Initialize the model
+heartDTC = DecisionTreeClassifier(criterion='entropy')
+# -----------------------------------------
+
+# Print model parameters
+print(heartDTC.get_params())
+```
+
+### 6.1.2 (Challenge): 2
+
+Heart disease is one of the leading causes of death in the United States. Developing early diagnostic tools for heart disease may save thousands of lives every year.
+
+The heart dataset contains data from a sample of medical records in the United States, Hungary, and Switzerland. For each patient, `target=0` if the patient does not have heart disease and `target=1` if the patient does have heart disease.
+
+- Initialize a decision tree classifier model `DTCHeart` using Gini impurity as the impurity measure.
+- Fit `DTCHeart` to input features X and output feature y.
+
+The code provided imports the dataset and packages, scales the input features, and prints the predictions and proportion of correctly predicted instances from the fitted model.
+
+```py
+# Import packages and functions
+import numpy as np
+import pandas as pd
+from sklearn.tree import DecisionTreeClassifier
+
+# Load the heart dataset
+heart = pd.read_csv("heart.csv")
+
+# Create a dataframe X containing input features age in years and cholesterol
+X = heart[["age", "chol"]]
+
+# Create a dataframe y containing output feature target
+y = heart[["target"]]
+
+# ---------------------------------------
+# Initialize the model
+DTCHeart = DecisionTreeClassifier(criterion='gini')
+
+# Fit the model to X and y
+DTCHeart.fit(X, y)
+# ---------------------------------------
+
+
+# Print model predictions
+print(DTCHeart.predict(X))
+
+# Print proportion of instances classified correctly
+print(DTCHeart.score(X,y))
+```
+
+### 6.1.2 (Challenge): 3
+
+Heart disease is one of the leading causes of death in the United States. Developing early diagnostic tools for heart disease may save thousands of lives every year.
+
+The heart dataset contains data from a sample of medical records in the United States, Hungary, and Switzerland. For each patient, `target=0` if the patient does not have heart disease and `target=1` if the patient does have heart disease.
+
+- Initialize a decision tree classifier model `heartDTCEntropy` with `criterion="entropy"`, `max_depth=3`, and `random_state=123`.
+- Fit `heartDTCGini` and `heartDTCEntropy` to input features X and output feature y.
+- Print a text version of the tree from `heartDTCEntropy`.
+
+The code provided imports the dataset and packages, initializes `heartDTCGini`, and prints the tree from `heartDTCGini`.
+
+```py
+# Import packages and functions
+import numpy as np
+import pandas as pd
+from sklearn.neighbors import KNeighborsClassifier
+from sklearn.preprocessing import StandardScaler
+from sklearn.tree import DecisionTreeClassifier
+from sklearn.tree import export_text
+
+# Load the heart dataset
+heart = pd.read_csv("heart.csv")
+
+# Create a dataframe X containing age in years and resting blood pressure
+X = heart[["age", "trestbps"]]
+
+# Create a dataframe y containing output feature target
+y = heart[["target"]]
+
+# Initialize the models
+heartDTCGini = DecisionTreeClassifier(criterion="gini", max_depth=3, random_state=123)
+
+# ---------------------------------------------
+heartDTCEntropy = DecisionTreeClassifier(criterion="entropy", max_depth=3, random_state=123)
+
+# Fit both models to X and y
+heartDTCGini.fit(X, y)
+heartDTCEntropy.fit(X, y)
+# ---------------------------------------------
+
+# Print the tree for the Gini impurity model
+print(export_text(heartDTCGini, feature_names=X.columns.to_list()))
+
+# Print the tree for the entropy model
+# ---------------------------------------------
+print(export_text(heartDTCEntropy, feature_names=X.columns.to_list()))
+# ---------------------------------------------
+```
