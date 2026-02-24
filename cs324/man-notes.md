@@ -2,6 +2,8 @@
 
 - exec(3)
 - strcmp(3)
+- kill
+- ummm probably some others too. really I should just go back through each assignment and look at what man pages it recommends reading, and add ones I didn't include the first time.
 
 # man notes
 
@@ -45,20 +47,6 @@ You can change these file descriptors...but it sounds dangerous.
 
 These can be changed but it sounds like it's complicated and why would I want to do that in the first place.
 
-## memset(3)
-
-### `memset()`
-
-```c
-#include <string.h>
-
-void memset(void* s, int c, size_t n)
-```
-
-- DESCRIPTION: fills the first `n` bytes of the memory pointed to by `s` w/ the constant byte `c`. 
-- RETURNS:
-  - void.
-
 ## open(2)
 
 For opening files to be accessed by FDs.
@@ -80,95 +68,6 @@ int open(const char* pathname, int flags)
 
 Uhhhh I'm not rly sure what the flags are, but an example of one is `O_RDONLY`&mdash;"Read only". For more flags, see the DESCRIPTION section in open(2).
 
-## read(2)
-
-For reading from file streams, accessing them by their FD.
-
-### `read()`
-
-```c
-#include <unistd.h>
-
-size_t read(int fd, void buffer, size_t count)
-```
-
-- DESCRIPTION: Attempts to read `count` bytes from the file descriptor `fd` into the buffer starting at `buffer`.
-- RETURNS:
-  - Successful: Returns the **number of bytes read**.
-    - This may be less than `count`&mdash;that's not an error. 
-      - e.g. if there are fewer than `count` bytes available for reading. 
-      - e.g. if the read is interrupted by a signal.
-  - Failure: `-1`, and sets `errno`.
-
-## close(2)
-
-For closing files/FDs.
-
-### `close()`
-
-```c
-#include <unistd.h>
-
-int close(int fd)
-```
-
-- DESCRIPTION: Closes FD `fd` so that it no longer refers to any file. 
-  - (And after being closed, it may then be reused.)
-<!--   - `fd` is the file descriptor for the file you're closing. -->
-- RETURNS: 
-  - Success: `0`.
-  - Failure: `-1`, and sets `errno`.
-
-### Notes
-
-- If the FD closed was the last FD referring to the underlying file description, the resources associated for that fdescription are freed.
-
-## write(2)
-
-I kept forgetting the inputs for `write()` so I'm just going to note them down here.
-
-### Synopsis
-
-```c
-#include <unistd.h>
-
-size_t write(int fd, const void* buf, size_t count)
-```
-
-- DESCRIPTION: Writes up to `count` bytes starting at `buf` into the file associated w/ `fd`.
-- RETURNS:
-  - Success: Number of bytes written.
-  - Failure: `-1`, and sets `errno`.
-
-## getenv(3)
-
-For accessing environment variables.
-
-### `getenv()`
-
-```c
-#include <stdlib.h> 
-
-char* getenv(const char* name)
-```
-
-- DESCRIPTION: Returns the value of the environment variable called `name` (if it exists).
-- RETURNS:
-  - Success: **C-String** of the **env var's value**. (i.e. pointer to the first char in the string.)
-  - Failure: `NULL`. 
-    - (Fails if `name` does not match the name of any env var.)
-
-## ps(1) 
-
-Shell command for displaying information about active processes. 
-
-### Modifiers
-
-| Modifier       | Alternative     | Description          | Example |  
-| -------------- | --------------- | -------------------- | ------- |  
-| <code>-p <i>pidlist</i> | `p`, `--pid`    | Select by process ID. *`pidlist`* is a single argument that can either be a blank-separated list (in quotes) or a comma-separated list. `-p` can be used multiple times. | `ps -p "1 2" -p 3,4` |  
-| <code>-o <i>format</i></code>  | `o`, `--format` | Allows you to specify individual output columns. *`format`* is a single arg that may be a blank-separated list (w/ quotes) or a comma-separated list. See STANDARD FORMAT SPECIFIERS in the man page for columns you can print. | `ps -o user,pid,ppid,state,ucmd` |  
-| `--forest`     |                 | ASCII art process tree. (That's it... that's all the man page says about this option...)
 
 ## fopen(3)
 
@@ -220,6 +119,49 @@ FILE* fopen(string pathname, string mode)
 Uhhh `pathname` and `mode` are defined w/ type `const char *restrict`...which has to do w/ scope and has something to do w/ compiler optimization??? Idrk.
 Just use string literals and I think you'll be fine.
 
+## close(2)
+
+For closing files/FDs.
+
+### `close()`
+
+```c
+#include <unistd.h>
+
+int close(int fd)
+```
+
+- DESCRIPTION: Closes FD `fd` so that it no longer refers to any file. 
+  - (And after being closed, it may then be reused.)
+<!--   - `fd` is the file descriptor for the file you're closing. -->
+- RETURNS: 
+  - Success: `0`.
+  - Failure: `-1`, and sets `errno`.
+
+### Notes
+
+- If the FD closed was the last FD referring to the underlying file description, the resources associated for that fdescription are freed.
+
+## fclose(3)
+
+### `fclose()`
+
+```c
+#include <stdio.h>
+
+int fclose(FILE* stream)
+```
+- DESCRIPTION: Flush `stream` and close its underlying FD.
+- RETURNS:
+  - Success: `0`.
+  - Failure: `EOF` (and `errno` is set).
+  - ^ In either case, `stream` is unusable. (See [Notes](#fclose3-notes).)
+
+<h3 id="fclose3-notes">Notes</h3>
+
+- Regardless of whether `fclose()` is successful or not, further access to the stream results in undefined behavior (including further `fclose()` calls).
+
+
 ## fileno(3)
 
 File stream &rightarrow; FD.
@@ -264,24 +206,42 @@ int fflush(FILE* stream)
   - Hence, if a parent calls `fork()` when it has data in its buffer, that buffer and all its data will be copied to the child.
 
 
-## fclose(3)
+## read(2)
 
-### `fclose()`
+For reading from file streams, accessing them by their FD.
+
+### `read()`
 
 ```c
-#include <stdio.h>
+#include <unistd.h>
 
-int fclose(FILE* stream)
+size_t read(int fd, void buffer, size_t count)
 ```
-- DESCRIPTION: Flush `stream` and close its underlying FD.
+
+- DESCRIPTION: Attempts to read `count` bytes from the file descriptor `fd` into the buffer starting at `buffer`.
 - RETURNS:
-  - Success: `0`.
-  - Failure: `EOF` (and `errno` is set).
-  - ^ In either case, `stream` is unusable. (See [Notes](#fclose3-notes).)
+  - Successful: Returns the **number of bytes read**.
+    - This may be less than `count`&mdash;that's not an error. 
+      - e.g. if there are fewer than `count` bytes available for reading. 
+      - e.g. if the read is interrupted by a signal.
+  - Failure: `-1`, and sets `errno`.
 
-<h3 id="fclose3-notes">Notes</h3>
+## write(2)
 
-- Regardless of whether `fclose()` is successful or not, further access to the stream results in undefined behavior (including further `fclose()` calls).
+I kept forgetting the inputs for `write()` so I'm just going to note them down here.
+
+### Synopsis
+
+```c
+#include <unistd.h>
+
+size_t write(int fd, const void* buf, size_t count)
+```
+
+- DESCRIPTION: Writes up to `count` bytes starting at `buf` into the file associated w/ `fd`.
+- RETURNS:
+  - Success: Number of bytes written.
+  - Failure: `-1`, and sets `errno`.
 
 ## fork(2)
 
@@ -304,139 +264,6 @@ pid_t fork()
 - The child inherits copies of the parent's set of open FDs. Each FD in the child refers to the same open file description as the corresponding description in the parent. 
   - This means that the 2 FDs share open file status flags, file offset, and signal-driven I/O attributes. 
     - (See F_SETOWN and F_SETSIG in fcntl(2)'s man page for more info).
-
-## pipe(2)
-
-### `pipe()`
-
-```c
-#include <unistd.h>
-
-int pipe(int pipefd[2])
-```
-
-- DESCRIPTION: Creates a pipe.
-  - `pipefd` is a 2-element array that is filled w/ the pipe's read & write FDs.
-- RETURNS:
-  - Success: `0`.
-  - Error: `-1`, and sets `errno`.
-    - `pipefd` is left unchanged.
-
-### Parameters
-
-Here is what `pipefd` is filled with, if `pipe()` is successful:
-
-- `pipefd[0]`: FD of pipe's **read** end.
-- `pipefd[1]`: FD of pipe's **write** end.
-
-### Examples
-
-pipe(2) actually has examples for building a pipe. That's dope!
-
-### `pipe2()`
-
-To build a pipe w/ flags, use `pipe2()`:
-
-```c
-int pipe2(int pipfd[2], int flags)
-```
-
-- With `flags` = `0`, `pipe2()` has the same effect as `pipe()`.
-
-
-## pipe(7)
-
-Overview of pipes and FIFOs (also called "named pipes").
-
-### I/O
-
-- If a process attempts to read from an empty pipe, then read(2) will block until data is available.
-- If a process attempts to write to a full pipe, then write(2) blocks until sufficient data has been read from the pipe to allow the write to complete.
-- Non-blocking IO is possible by using fcntl(2) to set certain flags. (See man page for more details.)
-
-<br>
-
-- If all FDs referring to the write end have been closed, then reading from the pipe (with read(2)) will see `EOF` (and `read()` will return `0`).
-- If all FDs referring to the read end of a pipe have been closed, then writing to the pipe (w/ write(2)) will cause a `SIGPIPE` signal to be generated for the process that made the write call. If that process ignores that signal, then their write call will fail w/ the error `EPIPE`.
-- ^ Hence, an application that uses pipe(2) and fork(2) should use suitable close(2) calls to close unnecessary duplicate FDs, thus ensuring that `EOF` and `SIGPIPE`/`EPIPE` are delivered when appropriate.
-
-<br>
-
-- You can't apply lseek(2) to a pipe. (Whatever that is.)
-
-### Pipe Capacity
-
-Pipes have a limited capacity.
-
-### Bidirectionality
-
-On some systems, pipes are bidirectional&mdash;data can be transmitted in both directions btwn pipe ends. This is not possible on Linux, however.
-
-## execve(2)
-
-### `execve()`
-
-```c
-#include <unistd.h>
-
-int execve(char* pathname, char* _Nullable argv[], char* _Nullable  envp[])
-```
-
-- DESCRIPTION:
-  - `argv` and `envp` are each an array of string pointers that must be null-terminated.
-    - You may pass in `NULL` as your argument for either/both. (`_Nullable`)
-- RETURNS:
-  - Success: **Nothing** is returned (bc process switches to new program).
-  - Failure: `-1`, and sets `errno`.
-
-### Parameters
-
-- `pathname` is a path to a binary executable you want the process to switch to.
-  - (Can also alternatively lead to an interpreter script ig...see man page for more on that.)
-- `argv` becomes the new program's **command-line arguments**.
-  - To follow convention, `argv[0]` should contain the filename associated w/ the file being executed.
-  - Must be terminated by a NULL pointer. I.e., `argv[argc]` must equal `NULL`.
-- `envp` becomes the new program's environment. (ig "environment" as in **environment variables**??)
-  - By convention, each string takes the form `key=value`.
-  - Must be terminated by a NULL ptr. 
-
-The new program can access `argv` and `envp` by using this signature for `main`:
-
-```c
-int main(int argc, char *argv[], char *envp[])
-```
-
-## dup(2)
-
-dup(2) explains three dup functions: `dup()`, `dup2()`, and `dup3()`. In CS 324, we've only used `dup2()`, which modifies one FD to point to the same open file description as another FD. 
-
-### `dup2()`
-
-```c
-#include <unistd.h>
-
-int dup2(int old_fd, int new_fd)
-```
-
-- DESCRPTION: "Give the file associated w/ old FD a new FD to be referenced from."
-  - More precisely: Closes `new_fd` and opens it again, this time pointed at the same file description as `old_fd`. 
-- RETURNS:
-  - Success: Returns new FD (`new_fd`).
-  - Error: `-1`, and sets `errno`.
-
-<!-- ### Parameters
-
-- In the man pages, `old_fd` is called `oldfd` and `new_fd` is called `newfd`. I changed the names to try and remember it better...but who knows man. -->
-
-### Notes
-
-- If `old_fd` is not a valid FD, then the call fails, and `new_fd` is NOT closed.
-- If `old_fd` is a valid FD and `new_fd` has the same value, then `dup2()` does nothing&mdash;but still returns `new_fd`.
-- If the FD passed in as `new_fd` was previously opened, it is closed before being reused in `dup2()`.
-  - This close is performed silently&mdash;any errors during the close are not reported by `dup2()`.
-- The steps of closing and reusing the FD passed in as `new_fd` are performed atomically.
-  - (I don't know what this means. But it avoids race conditions ig.)
-
 
 ## wait(2)
 
@@ -539,3 +366,180 @@ int setpgid(pid_t pid, pid_t pgid)
 - RETURNS:
   - Success: `0`.
   - Error: `-1`, and sets `errno`.
+
+
+## pipe(2)
+
+### `pipe()`
+
+```c
+#include <unistd.h>
+
+int pipe(int pipefd[2])
+```
+
+- DESCRIPTION: Creates a pipe.
+  - `pipefd` is a 2-element array that is filled w/ the pipe's read & write FDs.
+- RETURNS:
+  - Success: `0`.
+  - Error: `-1`, and sets `errno`.
+    - `pipefd` is left unchanged.
+
+### Parameters
+
+Here is what `pipefd` is filled with, if `pipe()` is successful:
+
+- `pipefd[0]`: FD of pipe's **read** end.
+- `pipefd[1]`: FD of pipe's **write** end.
+
+### Examples
+
+pipe(2) actually has examples for building a pipe. That's dope!
+
+### `pipe2()`
+
+To build a pipe w/ flags, use `pipe2()`:
+
+```c
+int pipe2(int pipfd[2], int flags)
+```
+
+- With `flags` = `0`, `pipe2()` has the same effect as `pipe()`.
+
+
+## pipe(7)
+
+Overview of pipes and FIFOs (also called "named pipes").
+
+### I/O
+
+- If a process attempts to read from an empty pipe, then read(2) will block until data is available.
+- If a process attempts to write to a full pipe, then write(2) blocks until sufficient data has been read from the pipe to allow the write to complete.
+- Non-blocking IO is possible by using fcntl(2) to set certain flags. (See man page for more details.)
+
+<br>
+
+- If all FDs referring to the write end have been closed, then reading from the pipe (with read(2)) will see `EOF` (and `read()` will return `0`).
+- If all FDs referring to the read end of a pipe have been closed, then writing to the pipe (w/ write(2)) will cause a `SIGPIPE` signal to be generated for the process that made the write call. If that process ignores that signal, then their write call will fail w/ the error `EPIPE`.
+- ^ Hence, an application that uses pipe(2) and fork(2) should use suitable close(2) calls to close unnecessary duplicate FDs, thus ensuring that `EOF` and `SIGPIPE`/`EPIPE` are delivered when appropriate.
+
+<br>
+
+- You can't apply lseek(2) to a pipe. (Whatever that is.)
+
+### Pipe Capacity
+
+Pipes have a limited capacity.
+
+### Bidirectionality
+
+On some systems, pipes are bidirectional&mdash;data can be transmitted in both directions btwn pipe ends. This is not possible on Linux, however.
+
+## dup(2)
+
+dup(2) explains three dup functions: `dup()`, `dup2()`, and `dup3()`. In CS 324, we've only used `dup2()`, which modifies one FD to point to the same open file description as another FD. 
+
+### `dup2()`
+
+```c
+#include <unistd.h>
+
+int dup2(int old_fd, int new_fd)
+```
+
+- DESCRPTION: "Give the file associated w/ old FD a new FD to be referenced from."
+  - More precisely: Closes `new_fd` and opens it again, this time pointed at the same file description as `old_fd`. 
+- RETURNS:
+  - Success: Returns new FD (`new_fd`).
+  - Error: `-1`, and sets `errno`.
+
+<!-- ### Parameters
+
+- In the man pages, `old_fd` is called `oldfd` and `new_fd` is called `newfd`. I changed the names to try and remember it better...but who knows man. -->
+
+### Notes
+
+- If `old_fd` is not a valid FD, then the call fails, and `new_fd` is NOT closed.
+- If `old_fd` is a valid FD and `new_fd` has the same value, then `dup2()` does nothing&mdash;but still returns `new_fd`.
+- If the FD passed in as `new_fd` was previously opened, it is closed before being reused in `dup2()`.
+  - This close is performed silently&mdash;any errors during the close are not reported by `dup2()`.
+- The steps of closing and reusing the FD passed in as `new_fd` are performed atomically.
+  - (I don't know what this means. But it avoids race conditions ig.)
+
+
+## execve(2)
+
+### `execve()`
+
+```c
+#include <unistd.h>
+
+int execve(char* pathname, char* _Nullable argv[], char* _Nullable  envp[])
+```
+
+- DESCRIPTION:
+  - `argv` and `envp` are each an array of string pointers that must be null-terminated.
+    - You may pass in `NULL` as your argument for either/both. (`_Nullable`)
+- RETURNS:
+  - Success: **Nothing** is returned (bc process switches to new program).
+  - Failure: `-1`, and sets `errno`.
+
+### Parameters
+
+- `pathname` is a path to a binary executable you want the process to switch to.
+  - (Can also alternatively lead to an interpreter script ig...see man page for more on that.)
+- `argv` becomes the new program's **command-line arguments**.
+  - To follow convention, `argv[0]` should contain the filename associated w/ the file being executed.
+  - Must be terminated by a NULL pointer. I.e., `argv[argc]` must equal `NULL`.
+- `envp` becomes the new program's environment. (ig "environment" as in **environment variables**??)
+  - By convention, each string takes the form `key=value`.
+  - Must be terminated by a NULL ptr. 
+
+The new program can access `argv` and `envp` by using this signature for `main`:
+
+```c
+int main(int argc, char *argv[], char *envp[])
+```
+## getenv(3)
+
+For accessing environment variables.
+
+### `getenv()`
+
+```c
+#include <stdlib.h> 
+
+char* getenv(const char* name)
+```
+
+- DESCRIPTION: Returns the value of the environment variable called `name` (if it exists).
+- RETURNS:
+  - Success: **C-String** of the **env var's value**. (i.e. pointer to the first char in the string.)
+  - Failure: `NULL`. 
+    - (Fails if `name` does not match the name of any env var.)
+
+## ps(1) 
+
+Shell command for displaying information about active processes. 
+
+### Modifiers
+
+| Modifier       | Alternative     | Description          | Example |  
+| -------------- | --------------- | -------------------- | ------- |  
+| <code>-p <i>pidlist</i> | `p`, `--pid`    | Select by process ID. *`pidlist`* is a single argument that can either be a blank-separated list (in quotes) or a comma-separated list. `-p` can be used multiple times. | `ps -p "1 2" -p 3,4` |  
+| <code>-o <i>format</i></code>  | `o`, `--format` | Allows you to specify individual output columns. *`format`* is a single arg that may be a blank-separated list (w/ quotes) or a comma-separated list. See STANDARD FORMAT SPECIFIERS in the man page for columns you can print. | `ps -o user,pid,ppid,state,ucmd` |  
+| `--forest`     |                 | ASCII art process tree. (That's it... that's all the man page says about this option...)
+
+## memset(3)
+
+### `memset()`
+
+```c
+#include <string.h>
+
+void memset(void* s, int c, size_t n)
+```
+
+- DESCRIPTION: fills the first `n` bytes of the memory pointed to by `s` w/ the constant byte `c`. 
+- RETURNS:
+  - void.
