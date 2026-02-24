@@ -1,11 +1,6 @@
-# TODO:
+# HW 1
 
-- exec(3)
-- strcmp(3)
-
-# man notes
-
-## `printf()`, `fprintf()`, and `write()`
+## `printf()` and related functions 
 
 - With `write()`, you give the output stream you want to write to, the data you want to write to it, *as well as the number of bytes to write*. 
 - `printf()` and `fprintf()` operate on **file streams** (`FILE *`). 
@@ -47,34 +42,30 @@ These can be changed but it sounds like it's complicated and why would I want to
 
 ## memset(3)
 
-### `memset()`
+### Synopsis
 
-```c
-#include <string.h>
-
-void memset(void* s, int c, size_t n)
-```
-
-- DESCRIPTION: fills the first `n` bytes of the memory pointed to by `s` w/ the constant byte `c`. 
+- INCLUDE: `<string.h>`
+- SIGNATURE: `void memset(void* s, int c, size_t n)`.
+  - `memset()` fills the first `n` bytes of the memory pointed to by `s` w/ the constant byte `c`. 
 - RETURNS:
-  - void.
+  - `memset()` returns void.
+
+## `exit()`
+
+`exit(n)` terminates the program and returns `n` as the exit status. 
+
+Inside of the `main` function, `exit(n)` and `return n;` do the same thing. (Because the `main` function returns the exit status.)
 
 ## open(2)
 
-For opening files to be accessed by FDs.
+### Synopsis
 
-### `open()`
-
-```c
-#include <fcntl.h>
-
-int open(const char* pathname, int flags)
-```
-
-- DESCRIPTION: Opens file at `pathname`.
+- INCLUDE: `<fcntl.h>`
+- SIGNATURE: `int open(const char *pathname, int flags);`
 - RETURNS:
   - Success: Return new FD (unsigned int).
-  - Failure: `-1`, and sets `errno`.
+  - Failure: `-1`.
+    - And "<u>errno</u> is set to indicate the error"...whatever that means?
 
 ### Flags
 
@@ -82,42 +73,30 @@ Uhhhh I'm not rly sure what the flags are, but an example of one is `O_RDONLY`&m
 
 ## read(2)
 
-For reading from file streams, accessing them by their FD.
+### Synopsis
 
-### `read()`
-
-```c
-#include <unistd.h>
-
-size_t read(int fd, void buffer, size_t count)
-```
-
-- DESCRIPTION: Attempts to read `count` bytes from the file descriptor `fd` into the buffer starting at `buffer`.
+- INCLUDE: `<unistd.h>`
+- SIGNATURE: `size_t read(int fd, void buffer, size_t count);`
+    - Attempts to read `count` bytes from the file descriptor `fd` into the buffer starting at `buffer`.
 - RETURNS:
   - Successful: Returns the **number of bytes read**.
     - This may be less than `count`&mdash;that's not an error. 
       - e.g. if there are fewer than `count` bytes available for reading. 
       - e.g. if the read is interrupted by a signal.
-  - Failure: `-1`, and sets `errno`.
+  - Failure: `-1` (and `errno` is set to indicate the error).
 
 ## close(2)
 
-For closing files/FDs.
+Closes an FD so that it no longer refers to any file. (And after being closed, it may then be reused.)
 
-### `close()`
+### Synopsis
 
-```c
-#include <unistd.h>
-
-int close(int fd)
-```
-
-- DESCRIPTION: Closes FD `fd` so that it no longer refers to any file. 
-  - (And after being closed, it may then be reused.)
-<!--   - `fd` is the file descriptor for the file you're closing. -->
+- INCLUDE: `<unistd.h>`
+- SIGNATURE: `int close(int fd);`
+  - `fd` is the file descriptor for the file you're closing.
 - RETURNS: 
   - Success: `0`.
-  - Failure: `-1`, and sets `errno`.
+  - Failure: `-1` (and `errno` is set to indicate the error).
 
 ### Notes
 
@@ -129,83 +108,61 @@ I kept forgetting the inputs for `write()` so I'm just going to note them down h
 
 ### Synopsis
 
-```c
-#include <unistd.h>
-
-size_t write(int fd, const void* buf, size_t count)
-```
-
-- DESCRIPTION: Writes up to `count` bytes starting at `buf` into the file associated w/ `fd`.
+- INCLUDE: `<unistd.h>`
+- SIGNATURE: `ssize_t write(int fd, const void* buf, size_t count);`
+  - Writes up to `count` bytes starting at `buf` into the file associated w/ `fd`.
 - RETURNS:
   - Success: Number of bytes written.
-  - Failure: `-1`, and sets `errno`.
+  - Failure: `-1` (and `errno` is set).
 
 ## getenv(3)
 
-For accessing environment variables.
+Get the value of an environment variable.
 
-### `getenv()`
+### Synopsis
 
-```c
-#include <stdlib.h> 
-
-char* getenv(const char* name)
-```
-
-- DESCRIPTION: Returns the value of the environment variable called `name` (if it exists).
+- INCLUDE: `<stdlib.h>`
+- SIGNATURE: `char *getenv(const char *name);`
+  - (The input is basically just a string.)
 - RETURNS:
-  - Success: **C-String** of the **env var's value**. (i.e. pointer to the first char in the string.)
+  - Success: **Pointer** to value of env var.
   - Failure: `NULL`. 
-    - (Fails if `name` does not match the name of any env var.)
+    - (Fails if inputted name does not match name of any env var.)
 
-## ps(1) 
+# HW 2
 
-Shell command for displaying information about active processes. 
+I didn't take notes on the terminal commands I was using for HW 2...sorry.
+
+# HW 3
+
+## ps(1)
+
+Displays information about active processes. 
 
 ### Modifiers
 
 | Modifier       | Alternative     | Description          | Example |  
 | -------------- | --------------- | -------------------- | ------- |  
-| <code>-p <i>pidlist</i> | `p`, `--pid`    | Select by process ID. *`pidlist`* is a single argument that can either be a blank-separated list (in quotes) or a comma-separated list. `-p` can be used multiple times. | `ps -p "1 2" -p 3,4` |  
-| <code>-o <i>format</i></code>  | `o`, `--format` | Allows you to specify individual output columns. *`format`* is a single arg that may be a blank-separated list (w/ quotes) or a comma-separated list. See STANDARD FORMAT SPECIFIERS in the man page for columns you can print. | `ps -o user,pid,ppid,state,ucmd` |  
+| `-p (pidlist)` | `p`, `--pid`    | Select by process ID. `(pidlist)` is a single argument that can either be a blank-separated list (in quotes) or a comma-separated list. `-p` can be used multiple times. | `ps -p "1 2" -p 3,4` |  
+| `-o (format)`  | `o`, `--format` | Allows you to specify individual output columns. `(format)` is a single arg that may be a blank-separated list (w/ quotes) or a comma-separated list. See STANDARD FORMAT SPECIFIERS in the man page for columns you can print. | `ps -o user,pid,ppid,state,ucmd` |  
 | `--forest`     |                 | ASCII art process tree. (That's it... that's all the man page says about this option...)
 
 ## fopen(3)
 
-For opening a file as a file stream.
+Opens a file and associates a stream with it.
 
-<!-- Opens a file and associates a stream with it. -->
+### Synopsis
 
-### `fopen()`
-
-```c
-#include <stdio.h>
-
-FILE* fopen(string pathname, string mode)
-```
-
-- DESCRIPTION: Opens file at `pathname` and associates a stream with it, which it returns.
+- INCLUDE: `<stdio.h>`
+- SIGNATURE: `FILE *fopen(string pathname, string mode);`  
 - RETURNS: 
-  - Success: File stream pointer (`FILE*`). 
-  - Failure: `NULL`, and sets `errno`.
+  - Success: File pointer (`FILE*`). 
+  - Failure: `NULL`. (And `errno` is set to indicate error.)
 
-### `mode` options
+### Parameters
 
-`mode` specifies read/write mode. While it's a string, there are a limited number of options you may pass in for it: 
-
-| Input | Mode                     | Notes |  
-| ----- | ------------------------ | ----- |  
-| `r`   | **reading**              |       |  
-| `r+`  | **reading & writing**    |       |  
-| `w`   | **writing**              | Creates file if it doesn't exist. If file does it exist, its length is truncated to zero (i.e. it's erased, I think?). |  
-| `w+`  | **reading & writing**    | Creates file if it doesn't exist; truncates the file if it does. |  
-| `a`   | **appending**            | Creates file if it doesn't exist. |  
-| `a+`  | **reading & appending**  | Creates file if it doesn't exist. |  
-
-- For all except `a` & `a+`, the stream is **positioned at the BEGINNING of the file**. 
-- For `a` & `a+`, the stream is positioned at the END of the file.
-
-<!-- - `mode` specifies read/write mode.
+- `pathname` is the path to the file.
+- `mode` specifies read/write mode.
   - Options:
     - `r`: Open for **reading**.
     - `r+`: Open for **reading & writing**.
@@ -213,26 +170,21 @@ FILE* fopen(string pathname, string mode)
     - `w+`: Open for **reading & writing**. Creates file if it doesn't exist; truncates the file if it does.
     - `a`: Open for **appending** (adding to the end of file). Creates file if it doesn't exist.
     - `a+`: Open for **reading & appending** (adding to the end of file). Creates file if it doesn't exist.
-  - ^ for all except `a` and `a+`, the stream is positioned at the beginning of the file. For `a` and `a+`, the stream is positioned at the end of the file. -->
+  - ^ for all except `a` and `a+`, the stream is positioned at the beginning of the file. For `a` and `a+`, the stream is positioned at the end of the file.
+- `pathname` and `modes` are not actually strings&mdash;they're C-strings.
+  - Specifically, they're `const char *restrict`.
+    - (`restrict` is there for compiler optimization. It tells the compiler it can presume certain expectations with the pointer args.)
 
-### Parameter types
-
-Uhhh `pathname` and `mode` are defined w/ type `const char *restrict`...which has to do w/ scope and has something to do w/ compiler optimization??? Idrk.
-Just use string literals and I think you'll be fine.
 
 ## fileno(3)
 
-File stream &rightarrow; FD.
+Returns the file descriptor associated with a file stream.
 
-### `fileno()`
+### Synopsis
 
-```c
-#include <stdio.h>
-
-int fileno(FILE* stream)
-```
-- DESCRIPTION: Returns the FD associated w/ file stream `stream`.
-- RETURNS: 
+- INCLUDE: `<stdio.h>`
+- SIGNATURE: `int fileno(FILE* stream);`
+- RETURN: 
   - Success: FD (unsigned int) associated with `stream`. 
   - Failure: `-1` (and `errno` is set to indicate the error).
 
@@ -244,36 +196,27 @@ int fileno(FILE* stream)
 
 For output streams: Flushes the stream. (Man page: "forces a write of all user-space buffered data for the given output or update stream, via stream's underlying write function.")
 
-### `fflush()`
+### Synopsis
 
-```c
-#include <stdio.h>
-
-int fflush(FILE* stream)
-```
-
-- DESCRIPTION: Flush `stream`.
-  - (Output streams only, I presume?)
+- INCLUDE: `<stdio.h>`
+- SIGNATURE: `int fflush(FILE *stream);`
 - RETURNS:
   - Success: `0`.
-  - Failure: `EOF`, and sets `errno`.
+  - Failure: `EOF` (and `errno` is set to indicate the error).
 
 ### Notes
 
 - Any data buffered in a file stream is part of user-spaced memory.
   - Hence, if a parent calls `fork()` when it has data in its buffer, that buffer and all its data will be copied to the child.
 
-
 ## fclose(3)
 
-### `fclose()`
+Flush a stream and close its underlying FD.
 
-```c
-#include <stdio.h>
+### Synopsis
 
-int fclose(FILE* stream)
-```
-- DESCRIPTION: Flush `stream` and close its underlying FD.
+- INCLUDE: `<stdio.h>`
+- SIGNATURE: `int fclose(FILE *stream);`
 - RETURNS:
   - Success: `0`.
   - Failure: `EOF` (and `errno` is set).
@@ -285,20 +228,6 @@ int fclose(FILE* stream)
 
 ## fork(2)
 
-### `fork()`
-
-```c
-#include <unistd.h>
-
-pid_t fork()
-```
-
-- RETURN:
-  - Success:
-    - PARENT: PID OF CHILD.
-    - CHILD: `0`.
-  - Failure: `-1`, and sets errno.
-
 ### Notes
 
 - The child inherits copies of the parent's set of open FDs. Each FD in the child refers to the same open file description as the corresponding description in the parent. 
@@ -307,19 +236,15 @@ pid_t fork()
 
 ## pipe(2)
 
-### `pipe()`
+### Synopsis
 
-```c
-#include <unistd.h>
-
-int pipe(int pipefd[2])
-```
-
-- DESCRIPTION: Creates a pipe.
+- INCLUDE: `<unistd.h>`
+- SIGNATURE: `int pipe(int *pipefd);`
   - `pipefd` is a 2-element array that is filled w/ the pipe's read & write FDs.
 - RETURNS:
   - Success: `0`.
-  - Error: `-1`, and sets `errno`.
+  - Error: `-1`.
+    - `errno` is set to indicate error.
     - `pipefd` is left unchanged.
 
 ### Parameters
@@ -328,21 +253,6 @@ Here is what `pipefd` is filled with, if `pipe()` is successful:
 
 - `pipefd[0]`: FD of pipe's **read** end.
 - `pipefd[1]`: FD of pipe's **write** end.
-
-### Examples
-
-pipe(2) actually has examples for building a pipe. That's dope!
-
-### `pipe2()`
-
-To build a pipe w/ flags, use `pipe2()`:
-
-```c
-int pipe2(int pipfd[2], int flags)
-```
-
-- With `flags` = `0`, `pipe2()` has the same effect as `pipe()`.
-
 
 ## pipe(7)
 
@@ -374,29 +284,27 @@ On some systems, pipes are bidirectional&mdash;data can be transmitted in both d
 
 ## execve(2)
 
-### `execve()`
+### Synopsis
 
-```c
-#include <unistd.h>
-
-int execve(char* pathname, char* _Nullable argv[], char* _Nullable  envp[])
-```
-
-- DESCRIPTION:
-  - `argv` and `envp` are each an array of string pointers that must be null-terminated.
-    - You may pass in `NULL` as your argument for either/both. (`_Nullable`)
+- INCLUDE: `<unistd.h>`
+- SIGNATURE: `int execve(string pathname, string*[] argv, string*[] envp[]);`
+  - `pathname` is a C-string. (Its actual declaration is `const char  *pathname`).
+  - `argv` is an array of pointers to strings. (Its actual declaration is `char *const _Nullable argv[]`)
+  - `envp` is the same type as `argv`.
 - RETURNS:
   - Success: **Nothing** is returned (bc process switches to new program).
-  - Failure: `-1`, and sets `errno`.
+  - Failure: returns `-1`, and sets `errno` to indicate error.
 
 ### Parameters
 
 - `pathname` is a path to a binary executable you want the process to switch to.
+  - C-string.
   - (Can also alternatively lead to an interpreter script ig...see man page for more on that.)
 - `argv` becomes the new program's **command-line arguments**.
+  - Array of pointers to strings.
   - To follow convention, `argv[0]` should contain the filename associated w/ the file being executed.
   - Must be terminated by a NULL pointer. I.e., `argv[argc]` must equal `NULL`.
-- `envp` becomes the new program's environment. (ig "environment" as in **environment variables**??)
+- `envp` becomes the new program's environment. (I "environment" as in **environment variables**??)
   - By convention, each string takes the form `key=value`.
   - Must be terminated by a NULL ptr. 
 
@@ -415,28 +323,49 @@ dup(2) explains three dup functions: `dup()`, `dup2()`, and `dup3()`. In CS 324,
 ```c
 #include <unistd.h>
 
-int dup2(int old_fd, int new_fd)
+int dup2(int ref_fd, int redir_fd)
 ```
 
-- DESCRPTION: "Give the file associated w/ old FD a new FD to be referenced from."
-  - More precisely: Closes `new_fd` and opens it again, this time pointed at the same file description as `old_fd`. 
+- DESCRPTION: Closes `redir_fd` and opens it again, this time pointed at the same file description as `ref_fd`. 
 - RETURNS:
-  - Success: Returns new FD (`new_fd`).
-  - Error: `-1`, and sets `errno`.
+  - Success: Returns new FD (`redir_fd`).
+  - Error: `-1` (and sets `errno`.)
 
-<!-- ### Parameters
+### Parameters
 
-- In the man pages, `old_fd` is called `oldfd` and `new_fd` is called `newfd`. I changed the names to try and remember it better...but who knows man. -->
+- In the man pages, `ref_fd` ("reference FD") is called `oldfd` and `redir_fd` ("redirected FD") is caflled `newfd`. I changed the names to make them more descriptive.
 
 ### Notes
 
-- If `old_fd` is not a valid FD, then the call fails, and `new_fd` is NOT closed.
-- If `old_fd` is a valid FD and `new_fd` has the same value, then `dup2()` does nothing&mdash;but still returns `new_fd`.
-- If the FD passed in as `new_fd` was previously opened, it is closed before being reused in `dup2()`.
+- If `ref_fd` is not a valid FD, then the call fails, and `redir_fd` is NOT closed.
+- If `ref_fd` is a valid FD and `redir_fd` has the same value, then `dup2()` does nothing&mdash;but still returns `redir_fd`.
+- If the FD passed in as `redir_fd` was previously opened, it is closed before being reused in `dup2()`.
   - This close is performed silently&mdash;any errors during the close are not reported by `dup2()`.
-- The steps of closing and reusing the FD passed in as `new_fd` are performed atomically.
-  - (I don't know what this means. But it avoids race conditions ig.)
+- The steps of closing and reusing the FD passed in as `redir_fd` are performed atomically.
+  - (This avoids race conditions.)
 
+# Lab 1
+
+## pipe(2)
+
+### Synopsis
+
+- INCLUDE: `<unistd.h>`
+- SIGNATURE:
+  - `int pipe(int pipefd[2])`
+    - `pipefd` is a 2-element integer array that is filled with the read/write FDs for the pipe.
+      - `pipefd[0]` refers to the pipe's **READ end**.
+      - `pipefd[1]` refers to the pipe's **WRITE end**.
+- RETURN:
+  - Success: `0`.
+  - Failure: `-1`, with `errno` set to indicate the error.
+    - On failure, `pipefd` is left unchanged.
+
+### Notes
+
+- To build a pipe with flags, use `pipe2()`: `int pipe2(int pipefd[2], int flags)`. 
+  - With `flags` = `0`, `pipe2()` has the same effect as `pipe()`.
+- pipe(2) actually has examples for building a pipe. That's dope!
 
 ## wait(2)
 
@@ -450,56 +379,34 @@ In the case of a terminated child, wait(2) functions allow the system to reap th
 
 (I think the only state change we care ab in this class is termination.)
 
-### `wait()`
+### `waitpid()` Synopsis
 
 ```c
-#include <sys/wait.h>
-
-pid_t wait(int* _Nullable wstatus)
+pid_t waitpid(pid_t pid, int *_Nullable wstatus, int options)
 ```
 
-- DESCRIPTION: waits for a child to die.
-- RETURN:
-  - Success: **PID of child** whose state changed.
-  - Failure: `-1`, and sets `errno`.
-
-### `waitpid()`
-
-```c
-#include <sys/wait.h>
-
-pid_t waitpid(pid_t pid, int* _Nullable wstatus, int options)
-```
-
-- DESCRIPTION: like `wait()` but w/ more options.
+- INCLUDE: `<sys/wait.h>`
+- PARAMETERS:
+  - `pid`: 
+    - $\text{pid} < -1$: wait for any child process whose **pgid is equal to abs(`pid`)**.
+    - $\text{pid} = -1$: wait for **any** child process.
+    - $\text{pid} = 0$: wait for any child process who **shares a pgid with the calling process**.
+    - $\text{pid} > 0$: wait for the **child whose pid is `pid`**.
+  - `wstatus`: Filled w/ information. May be `NULL`.
+    - The value of an integer passed in will be filled w/ the child's exit status.
+    - (You'll learn more about how to extract other information in Lab 2.)
+  - `options`: Flags and stuff. (See below.)
+    - Set to `0` if you don't want to add any flags.
 - RETURN:
   - Success: **pid of child** whose state changed.
     - (May return `0` if ran with `WNOHANG` and there are child(ren) with `pid` that have not changed state.)
   - Failure: `-1`, and sets `errno`.
 
-### Parameters
-
-- `pid`: 
-  - $\text{pid} < -1$: wait for any child process whose **pgid is equal to abs(`pid`)**.
-  - $\text{pid} = -1$: wait for **any** child process.
-  - $\text{pid} = 0$: wait for any child process who **shares a pgid with the calling process**.
-  - $\text{pid} > 0$: wait for the **child whose pid is `pid`**.
-- `wstatus`: Filled w/ information. May be `NULL`.
-  - The value of an integer passed in will be filled w/ the child's exit status.
-  - (You'll learn more about how to extract other information in Lab 2.)
-- `options`: Flags and stuff. (See below.)
-  - Set to `0` if you don't want to add any flags.
-
 ### Simplest use
 
-These two statements have the same effect:
+`pid_t pid = waitpid(-1, NULL, 0)`: It waits until any child is ready to be terminated and reaps it, and sets `pid` to the reaped child's PID. (Idk what would happen in the case of other state changes.) This has the same effect as `wait(NULL)`.
 
-- `pid_t pid = waitpid(NULL);`
-- `pid_t pid = waitpid(-1, NULL, 0);`
-
-It waits until any child is ready to be terminated and reaps it, and sets `pid` to the reaped child's PID. (Idk what would happen in the case of other state changes.)
-
-### Options (for `waitpid()`)
+### Options
 
 - `WNOHANG`: Return immediately if no child has exited.
 - `WUNTRACED`: Also return if a child has stopped (but not traced via ptrace(2)...or smth).
@@ -510,7 +417,25 @@ It waits until any child is ready to be terminated and reaps it, and sets `pid` 
 
 If `wstatus` is not `NULL`, then `wait()`/`waitpid()` fill the int it points to w/ status information.
 
-From there, you can use these (function) macros to inspect it. For each of these functions, you'll pass in the *value* `wstatus` points to.
+From there, you can use these (function) macros to inspect it. For each of these functions, you'll pass in the *value* `wstatus` points to (which I represent w/ `*wstatus`).
+
+<!-- - (bool) `WIFEXITED(*wstatus)`: returns true if **child terminated normally**.
+  - i.e., child was terminated by calling exit(3) or _exit(2), or by returning from `main()`.
+- (char) `WEXITSTATUS(*wstatus)`: returns **exit status of child**.
+  - Consists of the least sig 8 bits of: the `status` arg that the child specified in a call to exit(3) or _exit(2), or `main()`'s return value.
+  - Should **only use if `WIFEXITED` returned true**.
+- (bool) `WIFSIGNALED(*wstatus)`: Returns true if the child was ***terminated* by a signal**.
+- (int?) `WTERMSIG(*wstatus)`: Returns the **number of the signal** that cause the child to terminate.
+  - Should **only use if `WIFSIGNALED` returned true**.
+- (bool) `WCOREDUMP(*wstatus)`: Returns true if the **child produced a core dump**.
+  - (See core(5).)
+  - Should **only use if `WIFSIGNALED` returned true**.
+  - (This macro is not available on some UNIX implementations, so you should enclose its use inside `#ifdef WCOREDUMP ... #endif`.)
+- (bool) `WIFSTOPPED(*wstatus)`: Returns true if the child was ***stopped* by delivery of signal**.
+  - Possible only if the wait(2) call was done using `WUNTRACED`, OR when the child is *being* traced (via ptrace(2)).
+- (int?) `WSTOPSIG(*wstatus)`: Returns the **number of the signal** which caused the child to stop.
+  - Should only use if `WIFSTOPPED` returned true.
+- (bool) `WIFCONTINUED(*wstatus)`: Returns true if the child process was resumed by delivery of `SIGCONT`. -->
 
 | Macro          | Return type | Return      | Notes |  
 | -----          | ----------- | ----------- | ----- |  
@@ -525,17 +450,21 @@ From there, you can use these (function) macros to inspect it. For each of these
 
 ## setpgid(2)
 
-### `setpgid()`
+### Synopsis
 
 ```c
-#include <unistd.h>
-
 int setpgid(pid_t pid, pid_t pgid)
 ```
 
-- DESCRIPTION:
+- INCLUDE: `<unistd.h>`
+- PARAMETERS:
   - `pid`: The PID of the **process you're assigning a pgid to**.
   - `pgid`: The **PGID you're giving the process**.
 - RETURNS:
   - Success: `0`.
-  - Error: `-1`, and sets `errno`.
+  - Error: `-1`, and `errno` is set.
+
+## exec(3)
+
+## strcmp(3)
+
