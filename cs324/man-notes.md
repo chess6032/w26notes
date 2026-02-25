@@ -1,3 +1,20 @@
+# Introduction
+
+The man notes are helpful but really dense, so I've been keeping these notes as I go through them so that I don't have to dive into them more than once (ideally). 
+
+Each section is the title of the man page that I took notes on. E.g., the "stdin(3)" section is notes on the page accessable via `man 3 stdin` (or `man stdin.3`). A few pages have more than one function, e.g. wait(2).
+
+## Disclaimer
+
+I typically only take notes on the parts relevant to this class/the assignment we're doing, so I can't guarantee that everything you'll need will be in here. (I also can't guarantee everything is accurate.)
+
+## Parameters
+
+- C doesn't have a string data type. If I wrote a parameter as `string`, know that it's actually a char pointer/char array.
+- When `_Nullable` is used in a pointer's declaration, that means that you can pass in `NULL` (null pointer) for it.
+- I don't write down if a parameter is declared as `const`.
+  - If you're getting a compiler error saying smth like, "passing this in discards const qualifiers", check the man page to see if you're violating some const-ness thing.
+
 # TODO:
 
 - exec(3)
@@ -56,7 +73,7 @@ For opening files to be accessed by FDs.
 ```c
 #include <fcntl.h>
 
-int open(const char* pathname, int flags)
+int open(char *pathname, int flags)
 ```
 
 - DESCRIPTION: Opens file at `pathname`.
@@ -80,7 +97,7 @@ For opening a file as a file stream.
 ```c
 #include <stdio.h>
 
-FILE* fopen(string pathname, string mode)
+FILE* fopen(char *pathname, char *mode)
 ```
 
 - DESCRIPTION: Opens file at `pathname` and associates a stream with it, which it returns.
@@ -149,7 +166,7 @@ int close(int fd)
 ```c
 #include <stdio.h>
 
-int fclose(FILE* stream)
+int fclose(FILE *stream)
 ```
 - DESCRIPTION: Flush `stream` and close its underlying FD.
 - RETURNS:
@@ -171,7 +188,7 @@ File stream &rightarrow; FD.
 ```c
 #include <stdio.h>
 
-int fileno(FILE* stream)
+int fileno(FILE *stream)
 ```
 - DESCRIPTION: Returns the FD associated w/ file stream `stream`.
 - RETURNS: 
@@ -191,7 +208,7 @@ For output streams: Flushes the stream. (Man page: "forces a write of all user-s
 ```c
 #include <stdio.h>
 
-int fflush(FILE* stream)
+int fflush(FILE *stream)
 ```
 
 - DESCRIPTION: Flush `stream`.
@@ -215,7 +232,7 @@ For reading from file streams, accessing them by their FD.
 ```c
 #include <unistd.h>
 
-size_t read(int fd, void buffer, size_t count)
+size_t read(int fd, void *buffer, size_t count)
 ```
 
 - DESCRIPTION: Attempts to read `count` bytes from the file descriptor `fd` into the buffer starting at `buffer`.
@@ -235,10 +252,10 @@ I kept forgetting the inputs for `write()` so I'm just going to note them down h
 ```c
 #include <unistd.h>
 
-size_t write(int fd, const void* buf, size_t count)
+size_t write(int fd, void *buffer, size_t count)
 ```
 
-- DESCRIPTION: Writes up to `count` bytes starting at `buf` into the file associated w/ `fd`.
+- DESCRIPTION: Writes up to `count` bytes starting at `buffer` into the file associated w/ `fd`.
 - RETURNS:
   - Success: Number of bytes written.
   - Failure: `-1`, and sets `errno`.
@@ -282,7 +299,7 @@ In the case of a terminated child, wait(2) functions allow the system to reap th
 ```c
 #include <sys/wait.h>
 
-pid_t wait(int* _Nullable wstatus)
+pid_t wait(int _Nullable *wstatus)
 ```
 
 - DESCRIPTION: waits for a child to die.
@@ -295,7 +312,7 @@ pid_t wait(int* _Nullable wstatus)
 ```c
 #include <sys/wait.h>
 
-pid_t waitpid(pid_t pid, int* _Nullable wstatus, int options)
+pid_t waitpid(pid_t pid, int _Nullable *wstatus, int options)
 ```
 
 - DESCRIPTION: like `wait()` but w/ more options.
@@ -474,7 +491,7 @@ int dup2(int old_fd, int new_fd)
 ```c
 #include <unistd.h>
 
-int execve(char* pathname, char* _Nullable argv[], char* _Nullable  envp[])
+int execve(char *pathname, char * _Nullable argv[], char * _Nullable  envp[])
 ```
 
 - DESCRIPTION:
@@ -509,7 +526,7 @@ For accessing environment variables.
 ```c
 #include <stdlib.h> 
 
-char* getenv(const char* name)
+char* getenv(char *name)
 ```
 
 - DESCRIPTION: Returns the value of the environment variable called `name` (if it exists).
@@ -537,7 +554,7 @@ Shell command for displaying information about active processes.
 ```c
 #include <string.h>
 
-void memset(void* s, int c, size_t n)
+void memset(void *s, int c, size_t n)
 ```
 
 - DESCRIPTION: fills the first `n` bytes of the memory pointed to by `s` w/ the constant byte `c`. 
