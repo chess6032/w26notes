@@ -298,3 +298,61 @@ print(export_text(heartDTCGini, feature_names=X.columns.to_list()))
 print(export_text(heartDTCEntropy, feature_names=X.columns.to_list()))
 # ---------------------------------------------
 ```
+
+## 6.3: Decision Tree Regressors
+
+```py
+# Import libraries
+import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
+import numpy as np
+from sklearn.tree import DecisionTreeRegressor, plot_tree
+from sklearn.model_selection import train_test_split
+```
+```py
+Coffee = pd.read_csv("coffee.csv")
+Coffee.columns
+```
+```py
+X = Coffee[
+    ["aroma", "body", "species"]
+]  #'aroma', 'flavor', 'aftertaste', 'acidity', 'body', 'balance', 'uniformity', 'clean_cup', 'sweetness', 'species']]
+X_dummies = pd.get_dummies(X, drop_first=True)
+y = Coffee["cupper_points"]
+
+X_train, X_test, y_train, y_test = train_test_split(X_dummies, y, random_state=543)
+```
+```py
+DTR = DecisionTreeRegressor(max_depth=2)
+
+DTR.fit(X_train, y_train)
+```
+```py
+plot_tree(DTR, feature_names=X_train.columns)
+```
+```py
+# Prints the r-squared value for the training set.
+DTR.score(X_train, y_train)
+```
+```py
+DTR = DecisionTreeRegressor(max_leaf_nodes=10, min_samples_leaf=20)
+DTR.fit(X_train, y_train)
+# Adjust plot size to make the tree more readable
+plt.figure(figsize=(10, 8))
+plot_tree(DTR, feature_names=X_train.columns)
+plt.show()  # Suppresses the text output
+```
+```py
+# Adjust ccp_alpha to improve how well the tree generalizes to the test set.
+DTR = DecisionTreeRegressor(ccp_alpha=0.000)
+DTR.fit(X_train, y_train)
+DTR.score(X_test, y_test)
+```
+```py
+# Adjust plot size as needed
+plt.figure(figsize=(12,10))
+
+plot_tree(DTR, feature_names=X_train.columns)
+plt.show()
+```

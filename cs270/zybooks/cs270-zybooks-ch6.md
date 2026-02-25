@@ -291,3 +291,107 @@ It was first published in 1984. (JORJOR WELL REFERENCE!)
 All algorithms discussed in this chapter are divide-and-conquer algorithms. They are also all **greedy algorithms**, meaning they solve a problem in multiple steps, taking the best option at each step.
 
 Greedy algorithms are **not guaranteed to find the overall optimal solution**. They are used for find **SUBOPTIMAL SOLUTIONS for problems that are TOO EXPENSIVE to find the optimal solution.**
+
+# 6.3: Decision trees for regression
+
+## Modifying DTs for use w/ regression
+
+When using DTs for regression:
+
+- Decisions split w/ inequalities of input features.
+  - As is always the case, each split splits along only one input feature. So at each decision node, there's a SINGLE INEQUALITY that splits the dataset.
+- Once at a leaf, its predicted value is set to the OUTPUT FEATURE'S MEAN/MEDIAN for the instances in that leaf's region.
+
+## Error Estimates
+
+- During training, different error estimates may be used.
+- In sklearn, the error estimate is specified by the `criterion` parameter when instantiating a `DecisionTreeRegressor`.
+  - The default is `"squared_error"` (MSE)
+
+For the formulas below:
+
+- $R_i$ is the region corresponding to an individual node.
+  - (To evaluate an ENTIRE TREE, the WEIGHTED AVERAGE OF ALL LEAVES is calculated, where each leaf's NUMBER OF INSTANCES provides its weight.)
+- $n_i$ is the NUMBER OF TRAINING INSTANCES in region $i$.
+
+### Mean squared error (MSE)
+
+```math
+\text{MSE}
+```
+```math
+\frac 1 {n_i} \sum_{y\in R_i} (y - \bar y)^2
+```
+```math
+\texttt{"squared\_error"}
+```
+
+- MSE is the **DEFAULT CRITERION for DTs in sklearn**.
+- **Good GENERAL USE** estimate:
+  - does not require expensive computations.
+  - leads to efficient convergence (under most conditions.)
+    - (no idea what ts means.)
+
+### MSE w/ Friedman's Improvement
+
+```math
+\text{MSE with Friedman's improvement}
+```
+```math
+\frac{n_{below} \times n_{above}}{n_{below} + n_{above}} (\bar y_{below} - \bar y_{above})^2
+```
+```math
+\texttt{"friedman\_mse"}
+```
+
+- Not *technically* an error measurement, since it doesn't use instance outputs.
+- Larger improvements indicates the threshold separates two different outputs well. (Huh?)
+- **Useful in cases when CLASSES ARE IMBALANCED**:
+  - Favors an EQUAL NUMBER OF INSTANCES IN EACH CHILD
+  - provides some NUMERICAL STABILITY.
+
+### Mean Absolute Error (MAE)
+
+```math
+\text{MAE}
+```
+```math
+\frac 1 {n_i} \sum _{y \in R_i} |y-m_i|
+```
+```math
+\texttt{"absolute\_error"}
+```
+
+- ($m_i$ is MEDIAN)
+- Use is appropriate when **OUTPUT FEATURE IS SKEWED**:
+  - Uses MEDIAN AS PREDICTION INSTEAD OF MEAN.
+- HOWEVER, finding median requires MORE COMPUTATIONS than mean, so **trees will TAKE LONGER TO TRAIN using MAE** than using MSE.
+
+### Half Poisson deviance
+
+```math
+\text{Half Poisson deviance}
+```
+```math
+\frac 1 {n_i} \sum_{y\in R_i} \Big(y\ln \frac y {\bar y_i} - y + \bar y_i \Big)
+```
+```math
+\texttt{"poisson"}
+```
+
+- Best used when OUTPUT FEATURE IS A COUNT/FREQUENCY.
+- Log algorithm makes it EXPENSIVE TO CALCULATE, so trees trained w/ half Poisson deviance TAKE LONGER TO TRAIN than those w/ MSE.
+
+
+## DT Regression in Sklearn
+
+DT reg. is implemented in sklearn using `DecisionTreeRegressor()` from `sklearn.tree`. ([Documentation](https://scikit-learn.org/stable/modules/generated/sklearn.tree.DecisionTreeRegressor.html))
+
+### Parameters
+
+I'm *pretty* sure all the parameters for DT classifier also apply to the DT regressor. Here's the ones from the Zybooks that were listed for the DT regressor but not the DT classifier:
+
+| Parameter   | Default           | Description |  
+| ----------- | ----------------- | ----------- |  
+| `criterion` | `"squared_error"` | Determines ERROR ESTIMATE used during training. (See above.) |  
+| `cpp_alpha` | `0.0`             | Determines $\alpha$ for cost-complexity pruning. (Default does NO pruning.) |  
