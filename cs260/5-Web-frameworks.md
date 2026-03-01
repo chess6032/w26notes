@@ -57,4 +57,4 @@ You don't have to fully understand each of these pieces, but the more you know a
 
 ## Up next
 
-The next topic is [Vite](Vite.md), one of the parts of our React project's toolchain.
+The next topic is [Vite](6-Vite.md), one of the parts of our React project's toolchain.

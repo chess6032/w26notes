@@ -51,4 +51,4 @@ For our project, we run `deployReact.sh`, a Bash script, to deploy our web app t
 
 ## Up next
 
-The next topic is [React](React.md).
+The next topic is [React](7-React.md).
