@@ -47,8 +47,4 @@ For our project, we run `deployReact.sh`, a Bash script, to deploy our web app t
 
 ## Folder structure
 
-
-
-## Up next
-
-The next topic is [React](7-React.md).
+*(EDIT: uhhh oops! looks like I forgot to make notes on this!)*

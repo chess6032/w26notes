@@ -333,7 +333,3 @@ When you set a `font-family` in a CSS declaration, you can include many in a (co
 ## Animations
 
 Bruh I ain't doing all of ts for my website.
-
-## Up next
-
-The next topic is [Responsive design](Responsive-design.md).
