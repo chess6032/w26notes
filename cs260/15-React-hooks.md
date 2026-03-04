@@ -59,6 +59,8 @@ root.render(<UseEffectHookDemo />);
 - You can control what triggers a `useEffect` hook by specifying its **dependencies**.
   - Dependencies are specified in an **array** passed in as the **second parameter of `React.useEffect()`**.
     - By passing in `[]`, the effect hook is **only triggered the first time** the component is rendered.
+  - ^ If instead of an array you pass in a **number**&mdash;let's call it *`time`*&mdash;then `useEffect` will run every *`time`* milliseconds.
+    - Kinda akin to JS's [setInterval method](11-JS-setTimeout-setInterval.md#setinterval).
 
 ```jsx
 function UseEffectHookDemo() {
@@ -114,3 +116,20 @@ function Db() {
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(<Clicker />);
 ```
+
+### `useNavigate` hook
+
+> [!NOTE]
+> `useNavigate` msut be imported from `'react-router-dom'`
+
+
+#### Getting the hook
+
+```jsx
+const navigate = useNavigate(); // navigate becomes a func
+```
+
+#### Using the hook
+
+<pre><code class="language-js">navigate(<i>pathToWebpage</i>)</code></pre>
+

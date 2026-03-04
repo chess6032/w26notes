@@ -26,7 +26,9 @@ console.log(c);
 
 Although it LOOKS like you're *declaring* an array, you're actually just *grabbing values* from an array.
 
-### `...` to grab the rest
+### Spread syntax (`...`)
+
+You destructure the first few elements like normal, then store the remaining elements into a single variable by prefacing the variable w/ `...`:
 
 ```js
 const a = [1, 2, 4, 5];
@@ -35,6 +37,8 @@ const [b, c, ...others] = a;
 console.log(b, c, others);
 // OUTPUT: 1, 2, [4, 5]
 ```
+
+The rest element (the one prefaced w/ `...`) MUST be the LAST element in your destructuring.
 
 ## Destructuring objects
 
