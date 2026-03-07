@@ -53,7 +53,10 @@ class Header:
         self.next_sibling = next_sibling
 
     def __str__(self):
-        return f"{self.name}({self.level})"
+        return f"{self.level} - {self.name}"
+
+    def ind_str(self):
+        return f"{' ' * (self.level-1) * 4}{self.name}"
 
     def bear_child(self, name): # -> Header
         """
@@ -122,8 +125,20 @@ def nestify_headers(headers:list) -> Header:
     """
 
     root = Header(None, 1, [])
-    _nestify_headers(root, None, headers)
+    _nestify_headers(root, headers)
     return root
+
+
+def _print_Headers(header:Header) -> None:
+    if not header:
+        return
+
+    print(header.ind_str())
+    _print_Headers(header.first_child)
+    _print_Headers(header.next_sibling)
+
+def print_Headers(first_header:Header) -> None:
+    _print_Headers(first_header)
 
 
 def main() -> None:
@@ -136,10 +151,7 @@ def main() -> None:
         headers = identify_headers(f)
     
     root = nestify_headers(headers)
-
-    while (root.first_child):
-        print(root.first_child)
-        root = root.first_child
+    print_Headers(root)
 
 
 if __name__ == "__main__":

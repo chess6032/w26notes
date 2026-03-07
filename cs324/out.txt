@@ -1,0 +1,59 @@
+None
+    `printf()`, `fprintf()`, and `write()`
+    stdin(3)
+        Buffering
+    open(2)
+        `open()`
+        Flags
+    fopen(3)
+        `fopen()`
+        `mode` options
+        Parameter types
+    close(2)
+        `close()`
+        Notes
+    fclose(3)
+        `fclose()`
+    fileno(3)
+        `fileno()`
+        Notes
+    fflush(3)
+        `fflush()`
+        Notes
+    read(2)
+        `read()`
+    write(2)
+        Synopsis
+    fork(2)
+        `fork()`
+        Notes
+    wait(2)
+        `wait()`
+        `waitpid()`
+        Parameters
+        Simplest use
+        Options (for `waitpid()`)
+        Retrieving info (`wstatus`)
+    setpgid(2)
+        `setpgid()`
+    pipe(2)
+        `pipe()`
+        Parameters
+        Examples
+        `pipe2()`
+    pipe(7)
+        I/O
+        Pipe Capacity
+        Bidirectionality
+    dup(2)
+        `dup2()`
+        Notes
+    execve(2)
+        `execve()`
+        Parameters
+    getenv(3)
+        `getenv()`
+    ps(1)
+        Modifiers
+    memset(3)
+        `memset()`
