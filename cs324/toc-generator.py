@@ -31,7 +31,7 @@ def strip_hashtags(header:str) -> tuple[int, str]:
     while header[0] == '#':
         header = header[1:]
         n += 1
-    return (n, header)
+    return (n, header.strip())
 
 class Header:
     """
@@ -40,34 +40,71 @@ class Header:
     ### Attributes
 
     1. **name** (`str`): all text after the #s.
-    2. **subheaders** (`list<Header>`): list of subheader Header objects.
-    3. **header_num** (`int`): number of header if it were converted to an HTML tag. i.e., number of nestings. e.g., '###' is a "header 3", because it would be converted to \<h3>.
+    2. **level** (`int`): number of nestings. i.e., the number of header if it were converted to an HTML tag. e.g., '###' is a "header 3", because it would be converted to \<h3>.
+    3. **first_child** (`Header` | `None` ): the first of this header's subheaders, if any.
+    4. **next_sibling** (`Header` | `None` ): the next equal-level header, if any.
     """
 
-    def __init__(self, name:str, header_num:int, subheaders:list=[]):
+    def __init__(self, name:str, level:int, first_child=None, next_sibling=None):
 
         self.name = name
+        self.level = level
+        self.first_child = first_child
+        self.next_sibling = next_sibling
 
-        assert type(subheaders) == list
-        assert type(subheaders[0]) == Header if subheaders else True
+    def __str__(self):
+        return f"{self.name}({self.level})"
 
-        self.subheaders = subheaders
-        self.header_num = header_num
+    def bear_child(self, name): # -> Header
+        """
+        Instantiates header as first child.
 
-    def add_subheader(self, name:str): # -> Header
-        sub = Header(name, self.header_num+1, [])
-        self.subheaders.append(sub)
-        return sub
+        name (`str`): name of new header.
+        """
 
-def _nestify_headers(headers:list, superh:Header, nested_headers:list):
-    # BASE CASE: previous Header object had no subheaders
-    if not superh:
-        return
+        if (self.first_child):
+            raise RuntimeError(f"{str(self)} already has a child: {str(self.first_child)}")
 
-    n, name = strip_hashtags(headers[1])
-    if n == superh.header_num:
+        self.first_child = Header(name, self.level+1)
+        return self.first_child
 
-    _nestify_headers(, headers[1:])
+    def create_sibling(self, name):
+        """
+        Instantiates header object as sibling.
+
+        name (`str`): name of new header.
+        """
+        if (self.next_sibling):
+            raise RuntimeError(f"{str(self)} already has a sibling: {str(self.next_sibling)}")
+
+        self.next_sibling = Header(name, self.level)
+        return self.next_sibling
+
+def _nestify_headers(prev:Header, headers:list):
+    curr = prev
+
+    while True:
+        if not headers:
+            # no more heeaders
+            return
+
+        n, name = strip_hashtags(headers[0])
+
+        if n < curr.level:
+            # reached end of siblings
+            return # BACKTRACK
+
+        headers.pop(0)
+
+        if n > curr.level:
+            # create child
+            child = curr.bear_child(name)
+            _nestify_headers(child, headers)
+
+        elif n == curr.level:
+            curr.create_sibling(name)
+            curr = curr.next_sibling
+
 
 
 def nestify_headers(headers:list) -> Header:
@@ -84,8 +121,8 @@ def nestify_headers(headers:list) -> Header:
         - e.g. [ ('skibidi', [ ('fee', []), ('foo', [ ('bar', []) ]), ('fum', []) ]), ('gyatt', []) ] ]
     """
 
-    root = Header(None, 0, [])
-    _nestify_headers(headers, root, [root])
+    root = Header(None, 1, [])
+    _nestify_headers(root, None, headers)
     return root
 
 
@@ -98,7 +135,11 @@ def main() -> None:
             pass
         headers = identify_headers(f)
     
-    print(headers)
+    root = nestify_headers(headers)
+
+    while (root.first_child):
+        print(root.first_child)
+        root = root.first_child
 
 
 if __name__ == "__main__":
