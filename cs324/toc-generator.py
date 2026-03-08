@@ -3,10 +3,12 @@ Table-of-contents generator for man-notes.md
 """
 
 import re
+import sys
 
 MAN_NOTES_FILEPATH = './man-notes.md'
 MAN_NOTES_FIRST_HEADER = "# man notes"
 IS_FIRST_HEADER = lambda s: s.strip() == MAN_NOTES_FIRST_HEADER
+MAX_LEVEL = None
 
 
 def identify_headers(file) -> list:
@@ -154,6 +156,9 @@ def _build_TOC(header:Header, lines:list) -> None:
     if not header:
         return
 
+    if MAX_LEVEL and header.level > MAX_LEVEL:
+        return
+
     if (linktext := header.linktext()):
         lines.append(
             bulleter(header.level) + linktext
@@ -186,4 +191,7 @@ def main() -> None:
 
 
 if __name__ == "__main__":
+    if len(sys.argv) > 1:
+        MAX_LEVEL = int(sys.argv[1])
+
     main()
