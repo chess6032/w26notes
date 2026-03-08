@@ -8,6 +8,7 @@ MAN_NOTES_FILEPATH = './man-notes.md'
 MAN_NOTES_FIRST_HEADER = "# man notes"
 IS_FIRST_HEADER = lambda s: s.strip() == MAN_NOTES_FIRST_HEADER
 
+
 def identify_headers(file) -> list:
     headers = []
 
@@ -25,6 +26,7 @@ def identify_headers(file) -> list:
 
     return headers
 
+
 def strip_hashtags(header:str) -> tuple[int, str]:
     n = 0
     header = header.strip() # just in case
@@ -32,6 +34,7 @@ def strip_hashtags(header:str) -> tuple[int, str]:
         header = header[1:]
         n += 1
     return (n, header.strip())
+
 
 class Header:
     """
@@ -83,6 +86,13 @@ class Header:
         self.next_sibling = Header(name, self.level)
         return self.next_sibling
 
+    def ref(self) -> str:
+        return ''.join((re.findall('[a-z0-9\-]+', self.name.lower().replace(' ', '-')))) if self.name != None else None
+
+    def linktext(self) -> str:
+        ref = self.ref()
+        return f'[{self.name}](#{ref})' if ref else None
+
 def _nestify_headers(prev:Header, headers:list):
     curr = prev
 
@@ -107,8 +117,6 @@ def _nestify_headers(prev:Header, headers:list):
         elif n == curr.level:
             curr.create_sibling(name)
             curr = curr.next_sibling
-
-
 
 def nestify_headers(headers:list) -> Header:
     """
@@ -140,6 +148,26 @@ def _print_Headers(header:Header) -> None:
 def print_Headers(first_header:Header) -> None:
     _print_Headers(first_header)
 
+bulleter = lambda n: (' ' * (n-2) * 2) + '- '
+
+def _build_TOC(header:Header, lines:list) -> None:
+    if not header:
+        return
+
+    if (linktext := header.linktext()):
+        lines.append(
+            bulleter(header.level) + linktext
+        )
+
+    _build_TOC(header.first_child, lines)
+    _build_TOC(header.next_sibling, lines)
+
+def build_TOC(root:Header) -> list:
+    ls = []
+
+    _build_TOC(root, ls)
+    return ls
+
 
 def main() -> None:
     headers = []
@@ -151,7 +179,10 @@ def main() -> None:
         headers = identify_headers(f)
     
     root = nestify_headers(headers)
-    print_Headers(root)
+    bullets = build_TOC(root)
+    for line in bullets:
+        if line:
+            print(line)
 
 
 if __name__ == "__main__":
