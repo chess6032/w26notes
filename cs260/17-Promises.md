@@ -1,6 +1,3 @@
-> [!TIP]
-> Tee-hee I got ahead of myself. This content doesn't come until **after React Pt. 2**. (Which I hadn't completed when I started taking these notes...no wonder I was so confused.)
-
 # Promises
 
 **HTML rendering is single-threaded**. Hence, long-running/blocking JS tasks should **work in the background, via a `Promise`**.
@@ -13,11 +10,9 @@
 
 ## Promise execution state
 
-1. **Pending**: Currently running (asynchronously).
-2. **Fulfilled**: Completed successfully.
-3. **Rejected**: Failed to complete.
-
-<br>
+1. **Pending**: Currently **running** (asynchronously).
+2. **Fulfilled**: **Completed** successfully.
+3. **Rejected**: **Failed** to complete.
 
 ### Updating promise state (`resolve` & `reject`)
 
@@ -32,13 +27,16 @@
 
 The Promise object has three functions that you chain together to define behavior for doing smth w/ the promises result. Each of these functions takes a function as its input.
 
-- `.then()`: Called if the promise is fulfilled (`result()`).
+- **`.then()`**: Called if the promise is **fulfilled** (`result()`).
   - Your input into `result()` becomes the input into the function you pass in for `.then()`.
-- `.catch()`: Called if the promise is rejected (`reject()`).
+- **`.catch()`**: Called if the promise is **rejected** (`reject()`).
   - Your input into `reject()` becomes the input into the function you pass in for `.catch()`.
-- `.finally()`: Always called after promises finishes.
+- **`.finally()**`: **Always called** after promises finishes.
 
 (You may notice that the naming of these functions resembles exception handling.)
+
+> [!NOTE]
+> If you do NOT have a `.catch()` and the Promise calls `result()`, an error will be thrown that ends the program. (Or at least it did when I tested running JS w/ Node.js.)
 
 ## Example
 
