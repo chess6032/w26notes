@@ -31,7 +31,7 @@ The Promise object has three functions that you chain together to define behavio
   - Your input into `result()` becomes the input into the function you pass in for `.then()`.
 - **`.catch()`**: Called if the promise is **rejected** (`reject()`).
   - Your input into `reject()` becomes the input into the function you pass in for `.catch()`.
-- **`.finally()**`: **Always called** after promises finishes.
+- **`.finally()`**: **Always called** after promises finishes.
 
 (You may notice that the naming of these functions resembles exception handling.)
 

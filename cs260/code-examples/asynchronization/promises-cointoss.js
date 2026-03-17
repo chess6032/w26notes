@@ -18,3 +18,5 @@ coinToss
 // NOTE:
 // if you do not .catch() and the Promise calls reject(), 
 // it will throw an error
+
+console.log("hello there");
