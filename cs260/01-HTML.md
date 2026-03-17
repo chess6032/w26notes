@@ -1,4 +1,4 @@
-# HTMl
+# HTML
 
 ## Common HTML Elements
 
