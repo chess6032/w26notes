@@ -13,7 +13,7 @@
 
 **Deliverable 3: React pt. 1**
 
-4. [Intro to JavaScript](./04-JS.md)
+4. [Intro to JavaScript & Node.js](./04-JS-and-Node.md)
 5. [Web frameworks](./05-Web-frameworks.md)
 6. [Vite](./06-Vite.md)
 7. [Intro to React](./07-React.md)

@@ -1,4 +1,4 @@
-# JavaScript notes
+# Intro to JavaScript & Node.js
 
 - JavaScript (JS) is officially called ECMAScript. That's dumb.
 - PROPERTIES:
