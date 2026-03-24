@@ -22,6 +22,13 @@ I typically only take notes on the parts relevant to this class/the assignment w
 - kill
 - ummm probably some others too. really I should just go back through each assignment and look at what man pages it recommends reading, and add ones I didn't include the first time.
 
+&nbsp;
+
+- udp(7)
+- tcp(7)
+- send(2)/sendto(2)
+- recv(2)/recvfrom(2)
+
 # man notes
 
 **TABLE OF CONTENTS**
@@ -584,3 +591,115 @@ void memset(void *s, int c, size_t n)
 - DESCRIPTION: fills the first `n` bytes of the memory pointed to by `s` w/ the constant byte `c`. 
 - RETURNS:
   - void.
+
+## udp(7)
+
+USER DATAGRAM PROTOCOL.
+
+- Connectionless.
+- Unreliable.
+- Per-datagram.
+
+### Description
+
+#### Creating UDP socket
+
+```c
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <netinet/udp.h>
+
+udp_socket = socket(AF_INET, SOCK_DGRAM, 0);
+```
+
+- When UDP socket is created, its **local & remote addrs are unspecified**.
+
+#### Sending messages w/ UDP
+
+- `sendto()`: Send to destination by passing it in as argument.
+- `connect()` &rightarrow; `send()` (or `write()`).
+  - `connect()` sets socket's destination.
+  - `send()` (or `write()`) sends message.
+
+If you use `connect()`, it is still possible to send to other destinations w/ `sendto()`.
+
+#### Receiving messages w/ UDP
+
+- Socket's **local address can be set via `bind()`**, allowing it to receive messagespackets.
+  - (Otherwise, "the socket layer wlil automatically assign a free local port out of the range defined by <u>/proc/sys/net/ipv4/ip_local_port_range/</u> and bind the socket to `INADDR_ANY`"...whatever that means.)
+- **All recieve operations return only one packet.**
+  - If you read LESS than is present in the packet: Only that much is returned.
+  - If you read MORE than is present in the packet: Packet is truncated, and `MSG_TRUNC` flag is set.
+
+`MSG_WAITALL` is not supported...whatever that is.
+
+### Address format
+
+UDP uses the IPv4 `sockaddr_in` address format described in ip(7).
+
+### Other shih
+
+There was some more information that didn't look too important.
+
+## tcp(7)
+
+- Connection-oriented.
+- Reliable.
+  - Guarantees data arrives in order, and retransmits lost packets.
+- Stream-oriented.
+
+### Description
+
+#### Creating TCP socket
+
+```c
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <netinet/tcp.h>
+
+
+tcp_socket = socket(AF_INET, SOCK_STREAM, 0);
+```
+
+- When TCP socket is created, its **remote & local addrs are not specified**.
+
+#### Sending messages w/ TCP
+
+- `connect()`: establishes outgoingconnection to another TCP socket.
+
+#### Receiving messages w/ TCP
+
+- `bind()` &rightarrow; `listen()` &rightarrow; `accept()`
+  - `bind()` sets the local addr & port.
+  - `listen()` makes the socket a "listening socket"&mdash;i.e. a socket factory.
+    - (Data cannot be transmitted on listening sockets.)
+  - `accept()`: Creates new socket for each incoming connection.
+
+#### Misc
+
+- On individual connections, the socket buffer size must be set prior to `listen()` or `connect()` calls in order to have it take effect. 
+  - Maximum sizes for socket buffers are declared via `SO_SNDBUF` and `SO_RCVBUF` mechanisms, but they're limited by values in */proc/sys/net/core/rmem_max* and */proc/sys/net/core/wmem_max* files.
+  - (See socket(7) for more info.)
+- Send "urgent data" by calling `send()` w/ `MSG_OOB` option. Kernel sends `SIGURG` signal to process that owns the socket receiving this urgent data.
+
+### Address formats
+
+TCP is built on top of IP, so addr formats defined by ip(7) apply to TCP.
+
+TCP supports point-to-point communication only. It does not support broadcasting or multicasting.q
+
+### Other shih
+
+Similar to UDP, the man page for TCP is super long, so I'll just add stuff as I go.
+
+## send(2)
+
+### `send()`
+
+### `sendto()`
+
+## recv(2)
+
+### `recv()`
+
+### `recvfrom()`
