@@ -741,6 +741,56 @@ ssize_t sendto(int sockfd, const void buf[.len], size_t len, int flags, const st
 
 ## recv(2)
 
+System calls for receiving messages from a socket.
+
 ### `recv()`
 
+```c
+#include <sys/socket.h>
+
+ssize_t recv(int sockfd, void buf[.len], size_t len, int flags)
+```
+
+- `recv()` is normally only used on a *connected* socket (see connect(2)&mdash;`connect()`).
+- `recv(sockfd, buf, len, flags);` is equivalent to `recvfrom(sockfd, buf, len, flags, NULL, NULL);`.
+- The only difference between `recv()` and `read()` (read(2)) is the presence of **flags**. W/ no flags arg, `recv()` is roughly equivalent to read(2). (See NOTES.)
+
 ### `recvfrom()`
+
+```c
+#include <sys/socket.h>
+
+ssize_t recvfrom(int sockfd, void buf[.len], size_t len, int flags, struct sockaddr *src_addr, socklen_t *addrlen)
+```
+
+- UNIQUE PARAMETERS: `src_addr` is the source address, and `addrlen` is how long it is.
+  - `src_addr` is nullable:
+    - If `NULL`, then uses the source address specified in the socket.
+    - If NOT `NULL`, "and the underlying protocol provides the source address of the message, that source address is placed in the buffer pointed to by `src_addr`," in which case "`addrlen` is a value-result argument. (HUH????)
+    - `addrlen` is also nullable.
+      - (If the caller is not interested in the source address, then both `src_addr` and `addrlen` should be specified as `NULL`.)
+  - Before calling `recvfrom()`, `src_addr` "should be initialized to the size of the buffer associated with `src_addr`".
+  - Upon return, `addrlen` is updated to contain the actual size of the source address.
+  - The return address is truncated if the buffer provided is too small. 
+    - In which case, "`addrlen` will return a value greater than was supplied to the call".
+
+Bro I ain't gonna lie, I have NO clue what 90% of that is talking about.
+
+### `recv()` AND `recvfrom()`
+
+
+- PARAMETERS:
+  - `sockfd`: FD referring to socket receiving message.
+  - `buf`: popoulated w/ data from message. `len` bytes are read into `buf`.
+- RETURNS:
+  - SUCCESS: Number of bytes read, up to `len`.
+  - FAILURE: -1, and `errno` is set.
+
+<br>
+
+The following are true for both `recv()` and `recvfrom()`:
+
+- May be used to receive data on both connectionless and connection-oriented sockets.
+- If no messages are available to socket to read:
+  - By default: BLOCKS.
+  - If socket is nonblocking (see fcntl(2)), -1 is returned and `errno` is set to `EAGAIN` or `EWOULDBLOCK`.
