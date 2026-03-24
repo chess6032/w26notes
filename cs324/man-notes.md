@@ -694,9 +694,50 @@ Similar to UDP, the man page for TCP is super long, so I'll just add stuff as I 
 
 ## send(2)
 
+System calls for transmiting a message from one socket to another.
+
 ### `send()`
 
+```c
+#include <sys/socket.h>
+
+ssize_t send(int sockfd, const void buf[.len], size_t len, int flags)
+```
+
 ### `sendto()`
+
+```c
+#include <sys/socket.h>
+
+ssize_t sendto(int sockfd, const void buf[.len], size_t len, int flags, const struct sockaddr *dest_addr, socklen_t addrlen)
+```
+
+- UNIQUE PARAMS:
+  - `dest_addr` specifies the destination address. (I think it's kinda like a string&mdash;hence why you must also pass its length via `addrlen`.)
+    - If the socket is connected (`connect()`), then these params are ignored. In such a case, you should set them to `NULL` and `0`, respectively. (Otherwise, `EISCONN` err may be returned.)
+
+### `send()` AND `sendto()`
+
+- PARAMS:
+  - `sockfd` is the FD of the socket sending the message.
+  - `buf` is a pointer to the data being sent. It is an array, from which `len` items will be read.
+- RETURNS:
+  - SUCCESS: Number of bytes sent.
+  - FAILURE: -1, and `errno` is set.
+    - "If the message is too long to pass atomically through the underlying protocol", the error `EMGSIZE` is returned, and message is not transmitted.
+
+### `send()` VS `sendto()`
+
+- **`sendto()` specifies a destination address, while `send()` does not.**
+  - `send()` uses the destination address specified by the socket.
+- **`send()` may ONLY be called on a socket that has been connected** (via `connect()`).
+  - `sendto()` *may* be called on a connected socket:
+    - `send(sockfd, buf, len, flags)` is equivalent to `sendto(sockfd, buf, len, flags, NULL, 0)`
+- "No indication of failure to deliver is implicit in `send()`"...whatever that means?
+  - "Locally detected errors are indicated by a return value of -1."
+- When the message does not fit into the send buffer of the socket, `send()` (normally) blocks&mdash;unless the socket is placed in nonblocking IO mode.
+  - NOTE: "send buffer" is NOT necessarily the buffer we're sending bytes from (`buf`). "Send buffer" refers to the KERNEL'S BUFFER.
+    - (This class never tests on that, but it's cool info to know, Devin said.)
 
 ## recv(2)
 
