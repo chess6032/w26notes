@@ -24,10 +24,18 @@ I typically only take notes on the parts relevant to this class/the assignment w
 
 &nbsp;
 
-- udp(7)
-- tcp(7)
-- send(2)/sendto(2)
-- recv(2)/recvfrom(2)
+- All the system calls for setting up a server.
+  - `connect()`
+  - `bind()`
+  - `listen()`
+- Functions for creating sockets & stuff.
+  - `getaddrinfo()`
+  - `freeaddrinfo()`
+  - `getsockname()`
+  - `socket()`
+  - `sockaddr`
+  - `sockaddr_storage`
+  - `socklen_t`
 
 # man notes
 
@@ -794,3 +802,11 @@ The following are true for both `recv()` and `recvfrom()`:
 - If no messages are available to socket to read:
   - By default: BLOCKS.
   - If socket is nonblocking (see fcntl(2)), -1 is returned and `errno` is set to `EAGAIN` or `EWOULDBLOCK`.
+
+## connect(2)
+
+- For a UDP socket (`SOCK_DGRAM`), **populates the socket struct**. 
+  - `addr` becomes: 
+    - the address to which datagrams are sent by default, 
+    - and the only address from which datagrams may be received.
+- For a TCP socket (`SOCK_STREAM`), **attempts to make a connection** to the socket that is bound to the address specified by `addr`.
