@@ -70,6 +70,8 @@ I typically only take notes on the parts relevant to this class/the assignment w
   - [Receiving messages w/ TCP](#receiving-messages-w-tcp)
 - [send(2)](#send2)
 - [recv(2)](#recv2)
+- [bind(2)](#bind2)
+- [connect(2)](#connect2)
 
 
 ## `printf()`, `fprintf()`, and `write()`
@@ -855,7 +857,7 @@ int connect(int sockfd, const struct sockaddr *remote_addr, socklen_t addrlen)
 - DESCRIPTION:
   - **Connects your socket to another**.
     - Hence, its primary effect is that it **sets your socket's REMOTE addr** (the single socket it mainly wants to receive from and send to).
-    - But it also has a secondary effect: the kernel **implicitly sets your socket's LOCAL addr if it doesn't have one** yet (i.e., you haven't called `bind()` on it yet.)
+    - But it also has a secondary effect: the kernel **implicitly sets your socket's LOCAL addr if it doesn't have one** yet (i.e., you haven't called `bind()` on it yet).
 - PARAMETERS:
   - `sockfd`: FD ass. w/ the socket you're modifying.
   - `remote_addr`: address of the other socket you're connecting to.
