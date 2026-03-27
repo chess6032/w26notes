@@ -25,9 +25,8 @@ I typically only take notes on the parts relevant to this class/the assignment w
 &nbsp;
 
 - All the system calls for setting up a server.
-  - `connect()`
-  - `bind()`
   - `listen()`
+  - `accept()`
 - Functions for creating sockets & stuff.
   - `getaddrinfo()`
   - `freeaddrinfo()`
@@ -61,6 +60,16 @@ I typically only take notes on the parts relevant to this class/the assignment w
 - [getenv(3)](#getenv3)
 - [ps(1)](#ps1)
 - [memset(3)](#memset3)
+- [udp(7)](#udp7)
+  - [Creating UDP socket](#creating-udp-socket)
+  - [Sending messages w/ UDP](#sending-messages-w-udp)
+  - [Receiving messages w/ UDP](#receiving-messages-w-udp)
+- [tcp(7)](#tcp7)
+  - [Creating TCP socket](#creating-tcp-socket)
+  - [Sending messages w/ TCP](#sending-messages-w-tcp)
+  - [Receiving messages w/ TCP](#receiving-messages-w-tcp)
+- [send(2)](#send2)
+- [recv(2)](#recv2)
 
 
 ## `printf()`, `fprintf()`, and `write()`
@@ -721,7 +730,7 @@ ssize_t sendto(int sockfd, const void buf[.len], size_t len, int flags, const st
 ```
 
 - UNIQUE PARAMS:
-  - `dest_addr` specifies the destination address. (I think it's kinda like a string&mdash;hence why you must also pass its length via `addrlen`.)
+  - `dest_addr` specifies the destination address; `addrlen` specifies the dize of `dest_addr`.
     - If the socket is connected (`connect()`), then these params are ignored. In such a case, you should set them to `NULL` and `0`, respectively. (Otherwise, `EISCONN` err may be returned.)
 
 ### `send()` AND `sendto()`
@@ -759,7 +768,7 @@ System calls for receiving messages from a socket.
 ssize_t recv(int sockfd, void buf[.len], size_t len, int flags)
 ```
 
-- `recv()` is normally only used on a *connected* socket (see connect(2)&mdash;`connect()`).
+- `recv()` is normally only used on a *connected* socket (`connect()`, meaning its remote addr is already set)&mdash;i.e., a socket that already knows who it wants to receive from.
 - `recv(sockfd, buf, len, flags);` is equivalent to `recvfrom(sockfd, buf, len, flags, NULL, NULL);`.
 - The only difference between `recv()` and `read()` (read(2)) is the presence of **flags**. W/ no flags arg, `recv()` is roughly equivalent to read(2). (See NOTES.)
 
@@ -803,10 +812,64 @@ The following are true for both `recv()` and `recvfrom()`:
   - By default: BLOCKS.
   - If socket is nonblocking (see fcntl(2)), -1 is returned and `errno` is set to `EAGAIN` or `EWOULDBLOCK`.
 
+## bind(2)
+
+### `bind()`
+
+```c
+#include <sys/socket.h>
+
+int bind(int sockfd, const struct sockaddr *local_addr, socklen_t addrlen)
+```
+
+ **Sets socket's LOCAL addr** so that it may receive messages.
+
+- PARAMETERS:
+  - `sockfd`: FD associated w/ the socket you're modifying.
+  - `local_addr`: local address you're populating the socket struct w/.
+      - Will be a different struct, depending on the addr family, but in any case you cast to a `sockaddr` pointer. The only reason it's written this way is to avoid compiler warnings /gen.
+  - `addrlen`: length of `local_addr`.
+    - Set w/ <code>sizeof(<em>sock_struct</em>)</code>, where *`sock_struct`* is the struct your socket is stored in.
+- RETURNS:
+  - SUCCESS: 0.
+  - FAILURE: -1, and sets `errno`.
+
+### Notes
+
+- **Without calling `bind()`, you can't `recv()`/`recvfrom()`**.
+  - (UNLESS you called `connect()`, which implicitly sets the local address.)
+  - Without a local address set, the kernel has no gateway through which it can send messages to your socket.
+- For a TCP listening socket, it is (normally) **necessary to call `bind()` before you can `accept()` new connections**.
+  - `bind()` &rightarrow; `listen()` &rightarrow; `accept()`.
+
 ## connect(2)
 
-- For a UDP socket (`SOCK_DGRAM`), **populates the socket struct**. 
-  - `addr` becomes: 
-    - the address to which datagrams are sent by default, 
-    - and the only address from which datagrams may be received.
-- For a TCP socket (`SOCK_STREAM`), **attempts to make a connection** to the socket that is bound to the address specified by `addr`.
+### `connect()`
+
+```c
+#include <sys/socket.h>
+
+int connect(int sockfd, const struct sockaddr *remote_addr, socklen_t addrlen)
+```
+
+- DESCRIPTION:
+  - **Connects your socket to another**.
+    - Hence, its primary effect is that it **sets your socket's REMOTE addr** (the single socket it mainly wants to receive from and send to).
+    - But it also has a secondary effect: the kernel **implicitly sets your socket's LOCAL addr if it doesn't have one** yet (i.e., you haven't called `bind()` on it yet.)
+- PARAMETERS:
+  - `sockfd`: FD ass. w/ the socket you're modifying.
+  - `remote_addr`: address of the other socket you're connecting to.
+  - `addrlen` is the size of `remote_addr`'s struct.
+    - (If it's the same as bind(2) (which I think it is), then you'd evaluate this w/ `sizeof()`.)
+- RETURNS:
+  - SUCCESS: 0.
+  - FAILURE: -1, and `errno` is set. 
+
+### `connect()`: UDP vs TCP
+
+- UDP socket (`SOCK_DGRAM`): connect(2) populates the socket struct **but doesn't send anything**. It is an **entirely local** operation.
+  - From then on, `send()` will send to `remote_addr`.
+  - From then on, the socket can ONLY receive messages from `remote_addr`. 
+    - i.e., filters out messages from other sources.
+- TCP socket (`SOCK_STREAM`): In addition to populating the socket struct, connect(2) **initiates the three-way handshake** to the socket at `remote_addr`.
+  - Hence, for a TCP socket, **`connect()` is required before it can send** stuff.
