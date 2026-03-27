@@ -15,27 +15,6 @@ I typically only take notes on the parts relevant to this class/the assignment w
 - I don't write down if a parameter is declared as `const`.
   - If you're getting a compiler error saying smth like, "passing this in discards const qualifiers", check the man page to see if you're violating some const-ness thing.
 
-# TODO:
-
-- exec(3)
-- strcmp(3)
-- kill
-- ummm probably some others too. really I should just go back through each assignment and look at what man pages it recommends reading, and add ones I didn't include the first time.
-
-&nbsp;
-
-- All the system calls for setting up a server.
-  - `listen()`
-  - `accept()`
-- Functions for creating sockets & stuff.
-  - `getaddrinfo()`
-  - `freeaddrinfo()`
-  - `getsockname()`
-  - `socket()`
-  - `sockaddr`
-  - `sockaddr_storage`
-  - `socklen_t`
-
 # man notes
 
 **TABLE OF CONTENTS**
@@ -875,3 +854,28 @@ int connect(int sockfd, const struct sockaddr *remote_addr, socklen_t addrlen)
     - i.e., filters out messages from other sources.
 - TCP socket (`SOCK_STREAM`): In addition to populating the socket struct, connect(2) **initiates the three-way handshake** to the socket at `remote_addr`.
   - Hence, for a TCP socket, **`connect()` is required before it can send** stuff.
+
+
+----
+
+
+# TODO:
+
+- exec(3)
+- strcmp(3)
+- kill
+- ummm probably some others too. really I should just go back through each assignment and look at what man pages it recommends reading, and add ones I didn't include the first time.
+
+&nbsp;
+
+- All the system calls for setting up a server.
+  - `listen()`
+  - `accept()`
+- Functions for creating sockets & stuff.
+  - `getaddrinfo()`
+  - `freeaddrinfo()`
+  - `getsockname()`
+  - `socket()`
+  - `sockaddr`
+  - `sockaddr_storage`
+  - `socklen_t`
