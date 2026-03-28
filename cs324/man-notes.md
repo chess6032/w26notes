@@ -593,6 +593,8 @@ void memset(void *s, int c, size_t n)
 - RETURNS:
   - void.
 
+We use this when we initialize socket structs to make sure there's no data lingering around from before the memory was allocated for the struct.
+
 ## udp(7)
 
 USER DATAGRAM PROTOCOL.
