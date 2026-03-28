@@ -50,6 +50,7 @@ I typically only take notes on the parts relevant to this class/the assignment w
     - [Creating TCP socket](#creating-tcp-socket)
     - [Sending messages w/ TCP](#sending-messages-w-tcp)
     - [Receiving messages w/ TCP](#receiving-messages-w-tcp)
+  - [getaddrinfo(3)](#getaddrinfo3)
   - [send(2)](#send2)
   - [recv(2)](#recv2)
   - [bind(2)](#bind2)
@@ -860,9 +861,54 @@ int connect(int sockfd, const struct sockaddr *remote_addr, socklen_t addrlen)
 - TCP socket (`SOCK_STREAM`): In addition to populating the socket struct, connect(2) **initiates the three-way handshake** to the socket at `remote_addr`.
   - Hence, for a TCP socket, **`connect()` is required before it can send** stuff.
 
+## getaddrinfo(3)
+
+### `getaddrinfo()`
+
+```c
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <netdb.h>
+
+int getaddrinfo(const char *node,
+                const char *service,
+                const struct addrinfo *hints,
+                struct addrinfo **res);
+```
+
+- DESCRIPTION:
+  - Generates a **linked list** of possible addresses (`addrinfo` structs) to connect to.
+- PARAMETERS:
+  - `node` & `service`: Identifies internet **host & service**.
+  - `res`: Points at first `addrinfo` in linked list.
+    - (Not sure why it's declared as a double pointer...)
+  - `hints`: Specifies criteria for selecting/filtering sock addrs.
+    - May be `NULL`.
+    - (See [`addrinfo` struct](#addrinfo-struct) notes below.)
+- RETURNS:
+  - SUCCESS: **`0`**. 
+  - FAILURE: **Non-zero** error code. (See man notes.)
+
+### `addrinfo` struct
+
+The `addrinfo` used by `getaddrinfo()` (and some other socket functions) has the following fields.
+
+| Name             | Type                         | Description | 
+| ---------------- | ---------------------------- | - |
+| **ai_flags**     | `int`                        | Additional options. See man notes for more details. |  
+| **ai_family**    | `int`                        | Desired **address family** for returned addresses. `AF_UNSPEC` indicates any address family can be used w/ what you pass in for `node` and `service` into `getaddrinfo()`. |  
+| **ai_socktype**  | `int`                        | Preferred **socket type**, e.g. `SOCK_STREAM` (TCP) or `SOCK_DGRAM` (UDP). Setting this to `0` indicates that ANY socket addr may be returned by `getaddrinfo()`. |  
+| **ai_protocol**  | `int`                        | Preferred protocol for the returned socket addr. Setting this to `0` indicates that socket addrs w/ any protocol may be returned by `getaddrinfo()`. |  
+| **ai_addr**      | <code>sockaddr&nbsp;*</code> | |  
+| **ai_addrlen**   | `socklen_t`                  | |  
+| **ai_canonname** | <code>char&nbsp;*</code>     | |  
+| **ai_next**      | <code>addrinfo&nbsp;*</code> | Points to next `addrinfo` in linked list. |  
+
+^ When calling `getaddrinfo()`, you pass in a `hints` struct. You populate this
+struct's `ai_family`, `ai_socktype`, and `ai_protocol` fields (and also maybe
+the `ai_flags` field?) to specify crieteria that filter the sock addrs `getaddrinfo()` gives back.
 
 ----
-
 
 # TODO:
 
