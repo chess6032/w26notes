@@ -50,6 +50,7 @@ I typically only take notes on the parts relevant to this class/the assignment w
     - [Creating TCP socket](#creating-tcp-socket)
     - [Sending messages w/ TCP](#sending-messages-w-tcp)
     - [Receiving messages w/ TCP](#receiving-messages-w-tcp)
+  - [sockaddr(3type)](#sockaddr3type)
   - [getaddrinfo(3)](#getaddrinfo3)
     - [`addrinfo` struct](#addrinfo-struct)
   - [bind(2)](#bind2)
@@ -697,6 +698,71 @@ TCP supports point-to-point communication only. It does not support broadcasting
 
 Similar to UDP, the man page for TCP is super long, so I'll just add stuff as I go.
 
+## sockaddr(3type)
+
+```c
+#include <sys/socket.h>
+```
+
+### General types
+
+| Type               | Description |  
+| ------------------ | - |  
+| `sockaddr`         | Describes a **socket address**. |  
+| `sockaddr_storage` | A general struct for referring to **`sockaddr_... *` address structures**. Pointers to this struct may be cast to a pointer of any other `sockaddr_... *`. |  
+| `socklen_t`        | Describes **length of sock addr**. It's an **int** type of at least 32 bits. |  
+| `sa_family_t`      | Describe's socket's **protocol family**. This is an **unsigned int** type. |  
+
+### `sockaddr` & `sockaddr_storage` fields
+
+`sockaddr` fields:
+
+| Name      | Type          | Description |  
+| --------- | ------------- | ----------- |  
+| sa_family | `sa_family_t` | Address family. |  
+| sa_data   | `sa_data[]`   | Socket pathname. |  
+
+<br/>
+
+`sockaddr_storage` fields:
+
+| Name      | Type          | Description     |  
+| --------- | ------------- | --------------- |  
+| ss_family | `sa_family_t` | Address family. |  
+
+### Internet domain socket structs
+
+#### IPv4: `sockaddr_in`
+
+| Name           | Type             | Description  |  
+| -------------- | ---------------- | ------------ |  
+| **sin_family** | `sa_family_t`    | `AF_INET`    |  
+| **sin_port**   | `in_port_t`      | Port number  |  
+| **sin_addr**   | `struct in_addr` | IPv4 address |  
+
+- `sin_port` and `sin_addr` are stored in "network byte order".
+- The `in_addr` struct contains a single field, called `s_addr`, which is of type `uint32_t` (typedefed to `in_addr_t`),
+- `in_port_t` is just a typedef for `uint16_t`.
+
+#### IPv6: `sockaddr_in6`
+
+| Name              | Type              | Description                   |  
+| ----------------- | ----------------- | ----------------------------- |  
+| **sin6_family**   | `sa_family_t`     | `AF_INET6`                    |  
+| **sin6_port**     | `in_port_t`       | Port number                   |  
+| **sin6_flowinfo** | `uint32_t`        | IPv6 flow info                |  
+| **sin6_addr**     | `struct in6_addr` | IPv6 address                  |  
+| **sin6_scope_id** | `uint32_t`        | Set of interfaces for a scope |  
+
+- The `in6_addr` struct contains a single field called `s6_addr`, which is a 16-element array of `uint8_t` items.
+  - This array contains the 128-bit IPv6 address, stored in "network byte order".
+- `in_port_t` here is the same as the IPv4 struct's. It's just a typedef for `uint16_t`.
+
+### Notes
+
+`socklen_t` is also defined in `<netdb.h>`.
+
+`sa_family_t` is also defined in `netinet/in.h>` and `<sys/un.h>`.q
 
 ## getaddrinfo(3)
 
