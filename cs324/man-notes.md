@@ -740,7 +740,7 @@ Similar to UDP, the man page for TCP is super long, so I'll just add stuff as I 
 | **sin_port**   | `in_port_t`      | Port number  |  
 | **sin_addr**   | `struct in_addr` | IPv4 address |  
 
-- `sin_port` and `sin_addr` are stored in "network byte order".
+- `sin_port` and `sin_addr` are stored in "network byte order" (big-endian).
 - The `in_addr` struct contains a single field, called `s_addr`, which is of type `uint32_t` (typedefed to `in_addr_t`),
 - `in_port_t` is just a typedef for `uint16_t`.
 
@@ -755,7 +755,7 @@ Similar to UDP, the man page for TCP is super long, so I'll just add stuff as I 
 | **sin6_scope_id** | `uint32_t`        | Set of interfaces for a scope |  
 
 - The `in6_addr` struct contains a single field called `s6_addr`, which is a 16-element array of `uint8_t` items.
-  - This array contains the 128-bit IPv6 address, stored in "network byte order".
+  - This array contains the 128-bit IPv6 address, stored in "network byte order" (big-endian).
 - `in_port_t` here is the same as the IPv4 struct's. It's just a typedef for `uint16_t`.
 
 ### Notes
@@ -763,6 +763,8 @@ Similar to UDP, the man page for TCP is super long, so I'll just add stuff as I 
 `socklen_t` is also defined in `<netdb.h>`.
 
 `sa_family_t` is also defined in `netinet/in.h>` and `<sys/un.h>`.q
+
+When populating `sin_port`/`sin_addr` (IPv4) or `s6_addr`/`sin6_port`(IPv6), you can use `htons()` to convert to big-endian.
 
 ## getaddrinfo(3)
 
