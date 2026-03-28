@@ -51,10 +51,11 @@ I typically only take notes on the parts relevant to this class/the assignment w
     - [Sending messages w/ TCP](#sending-messages-w-tcp)
     - [Receiving messages w/ TCP](#receiving-messages-w-tcp)
   - [getaddrinfo(3)](#getaddrinfo3)
-  - [send(2)](#send2)
-  - [recv(2)](#recv2)
+    - [`addrinfo` struct](#addrinfo-struct)
   - [bind(2)](#bind2)
   - [connect(2)](#connect2)
+  - [send(2)](#send2)
+  - [recv(2)](#recv2)
 
 
 ## `printf()`, `fprintf()`, and `write()`
@@ -696,6 +697,118 @@ TCP supports point-to-point communication only. It does not support broadcasting
 
 Similar to UDP, the man page for TCP is super long, so I'll just add stuff as I go.
 
+
+## getaddrinfo(3)
+
+### `getaddrinfo()`
+
+```c
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <netdb.h>
+
+int getaddrinfo(const char *node,
+                const char *service,
+                const struct addrinfo *hints,
+                struct addrinfo **res);
+```
+
+- DESCRIPTION:
+  - Generates a **linked list** of possible addresses (`addrinfo` structs) to connect to.
+- PARAMETERS:
+  - `node` & `service`: Identifies internet **host & service**.
+  - `res`: Points at first `addrinfo` in linked list.
+    - (Not sure why it's declared as a double pointer...)
+  - `hints`: Specifies criteria for selecting/filtering sock addrs.
+    - May be `NULL`.
+    - (See [`addrinfo` struct](#addrinfo-struct) notes below.)
+- RETURNS:
+  - SUCCESS: **`0`**. 
+  - FAILURE: **Non-zero** error code. (See man notes.)
+
+### `addrinfo` struct
+
+The `addrinfo` used by `getaddrinfo()` (and some other socket functions) has the following fields.
+
+| Name             | Type                         | Description | 
+| ---------------- | ---------------------------- | - |
+| **ai_flags**     | `int`                        | Additional options. See man notes for more details. |  
+| **ai_family**    | `int`                        | Desired **address family** for returned addresses. `AF_UNSPEC` indicates any address family can be used w/ what you pass in for `node` and `service` into `getaddrinfo()`. |  
+| **ai_socktype**  | `int`                        | Preferred **socket type**, e.g. `SOCK_STREAM` (TCP) or `SOCK_DGRAM` (UDP). Setting this to `0` indicates that ANY socket addr may be returned by `getaddrinfo()`. |  
+| **ai_protocol**  | `int`                        | Preferred protocol for the returned socket addr. Setting this to `0` indicates that socket addrs w/ any protocol may be returned by `getaddrinfo()`. |  
+| **ai_addr**      | <code>sockaddr&nbsp;*</code> | |  
+| **ai_addrlen**   | `socklen_t`                  | |  
+| **ai_canonname** | <code>char&nbsp;*</code>     | |  
+| **ai_next**      | <code>addrinfo&nbsp;*</code> | Points to next `addrinfo` in linked list. |  
+
+^ When calling `getaddrinfo()`, you pass in a `hints` struct. You populate this
+struct's `ai_family`, `ai_socktype`, and `ai_protocol` fields (and also maybe
+the `ai_flags` field?) to specify crieteria that filter the sock addrs `getaddrinfo()` gives back.
+
+
+## bind(2)
+
+### `bind()`
+
+```c
+#include <sys/socket.h>
+
+int bind(int sockfd, const struct sockaddr *local_addr, socklen_t addrlen)
+```
+
+ **Sets socket's LOCAL addr** so that it may receive messages.
+
+- PARAMETERS:
+  - `sockfd`: FD associated w/ the socket you're modifying.
+  - `local_addr`: local address you're populating the socket struct w/.
+      - Will be a different struct, depending on the addr family, but in any case you cast to a `sockaddr` pointer. The only reason it's written this way is to avoid compiler warnings /gen.
+  - `addrlen`: length of `local_addr`.
+    - Set w/ <code>sizeof(<em>sock_struct</em>)</code>, where *`sock_struct`* is the struct your socket is stored in.
+- RETURNS:
+  - SUCCESS: 0.
+  - FAILURE: -1, and sets `errno`.
+
+### Notes
+
+- **Without calling `bind()`, you can't `recv()`/`recvfrom()`**.
+  - (UNLESS you called `connect()`, which implicitly sets the local address.)
+  - Without a local address set, the kernel has no gateway through which it can send messages to your socket.
+- For a TCP listening socket, it is (normally) **necessary to call `bind()` before you can `accept()` new connections**.
+  - `bind()` &rightarrow; `listen()` &rightarrow; `accept()`.
+
+## connect(2)
+
+### `connect()`
+
+```c
+#include <sys/socket.h>
+
+int connect(int sockfd, const struct sockaddr *remote_addr, socklen_t addrlen)
+```
+
+- DESCRIPTION:
+  - **Connects your socket to another**.
+    - Hence, its primary effect is that it **sets your socket's REMOTE addr** (the single socket it mainly wants to receive from and send to).
+    - But it also has a secondary effect: the kernel **implicitly sets your socket's LOCAL addr if it doesn't have one** yet (i.e., you haven't called `bind()` on it yet).
+- PARAMETERS:
+  - `sockfd`: FD ass. w/ the socket you're modifying.
+  - `remote_addr`: address of the other socket you're connecting to.
+  - `addrlen` is the size of `remote_addr`'s struct.
+    - (If it's the same as bind(2) (which I think it is), then you'd evaluate this w/ `sizeof()`.)
+- RETURNS:
+  - SUCCESS: 0.
+  - FAILURE: -1, and `errno` is set. 
+
+### `connect()`: UDP vs TCP
+
+- UDP socket (`SOCK_DGRAM`): connect(2) populates the socket struct **but doesn't send anything**. It is an **entirely local** operation.
+  - From then on, `send()` will send to `remote_addr`.
+  - From then on, the socket can ONLY receive messages from `remote_addr`. 
+    - i.e., filters out messages from other sources.
+- TCP socket (`SOCK_STREAM`): In addition to populating the socket struct, connect(2) **initiates the three-way handshake** to the socket at `remote_addr`.
+  - Hence, for a TCP socket, **`connect()` is required before it can send** stuff.
+
+
 ## send(2)
 
 System calls for transmiting a message from one socket to another.
@@ -798,115 +911,6 @@ The following are true for both `recv()` and `recvfrom()`:
 - If no messages are available to socket to read:
   - By default: BLOCKS.
   - If socket is nonblocking (see fcntl(2)), -1 is returned and `errno` is set to `EAGAIN` or `EWOULDBLOCK`.
-
-## bind(2)
-
-### `bind()`
-
-```c
-#include <sys/socket.h>
-
-int bind(int sockfd, const struct sockaddr *local_addr, socklen_t addrlen)
-```
-
- **Sets socket's LOCAL addr** so that it may receive messages.
-
-- PARAMETERS:
-  - `sockfd`: FD associated w/ the socket you're modifying.
-  - `local_addr`: local address you're populating the socket struct w/.
-      - Will be a different struct, depending on the addr family, but in any case you cast to a `sockaddr` pointer. The only reason it's written this way is to avoid compiler warnings /gen.
-  - `addrlen`: length of `local_addr`.
-    - Set w/ <code>sizeof(<em>sock_struct</em>)</code>, where *`sock_struct`* is the struct your socket is stored in.
-- RETURNS:
-  - SUCCESS: 0.
-  - FAILURE: -1, and sets `errno`.
-
-### Notes
-
-- **Without calling `bind()`, you can't `recv()`/`recvfrom()`**.
-  - (UNLESS you called `connect()`, which implicitly sets the local address.)
-  - Without a local address set, the kernel has no gateway through which it can send messages to your socket.
-- For a TCP listening socket, it is (normally) **necessary to call `bind()` before you can `accept()` new connections**.
-  - `bind()` &rightarrow; `listen()` &rightarrow; `accept()`.
-
-## connect(2)
-
-### `connect()`
-
-```c
-#include <sys/socket.h>
-
-int connect(int sockfd, const struct sockaddr *remote_addr, socklen_t addrlen)
-```
-
-- DESCRIPTION:
-  - **Connects your socket to another**.
-    - Hence, its primary effect is that it **sets your socket's REMOTE addr** (the single socket it mainly wants to receive from and send to).
-    - But it also has a secondary effect: the kernel **implicitly sets your socket's LOCAL addr if it doesn't have one** yet (i.e., you haven't called `bind()` on it yet).
-- PARAMETERS:
-  - `sockfd`: FD ass. w/ the socket you're modifying.
-  - `remote_addr`: address of the other socket you're connecting to.
-  - `addrlen` is the size of `remote_addr`'s struct.
-    - (If it's the same as bind(2) (which I think it is), then you'd evaluate this w/ `sizeof()`.)
-- RETURNS:
-  - SUCCESS: 0.
-  - FAILURE: -1, and `errno` is set. 
-
-### `connect()`: UDP vs TCP
-
-- UDP socket (`SOCK_DGRAM`): connect(2) populates the socket struct **but doesn't send anything**. It is an **entirely local** operation.
-  - From then on, `send()` will send to `remote_addr`.
-  - From then on, the socket can ONLY receive messages from `remote_addr`. 
-    - i.e., filters out messages from other sources.
-- TCP socket (`SOCK_STREAM`): In addition to populating the socket struct, connect(2) **initiates the three-way handshake** to the socket at `remote_addr`.
-  - Hence, for a TCP socket, **`connect()` is required before it can send** stuff.
-
-## getaddrinfo(3)
-
-### `getaddrinfo()`
-
-```c
-#include <sys/types.h>
-#include <sys/socket.h>
-#include <netdb.h>
-
-int getaddrinfo(const char *node,
-                const char *service,
-                const struct addrinfo *hints,
-                struct addrinfo **res);
-```
-
-- DESCRIPTION:
-  - Generates a **linked list** of possible addresses (`addrinfo` structs) to connect to.
-- PARAMETERS:
-  - `node` & `service`: Identifies internet **host & service**.
-  - `res`: Points at first `addrinfo` in linked list.
-    - (Not sure why it's declared as a double pointer...)
-  - `hints`: Specifies criteria for selecting/filtering sock addrs.
-    - May be `NULL`.
-    - (See [`addrinfo` struct](#addrinfo-struct) notes below.)
-- RETURNS:
-  - SUCCESS: **`0`**. 
-  - FAILURE: **Non-zero** error code. (See man notes.)
-
-### `addrinfo` struct
-
-The `addrinfo` used by `getaddrinfo()` (and some other socket functions) has the following fields.
-
-| Name             | Type                         | Description | 
-| ---------------- | ---------------------------- | - |
-| **ai_flags**     | `int`                        | Additional options. See man notes for more details. |  
-| **ai_family**    | `int`                        | Desired **address family** for returned addresses. `AF_UNSPEC` indicates any address family can be used w/ what you pass in for `node` and `service` into `getaddrinfo()`. |  
-| **ai_socktype**  | `int`                        | Preferred **socket type**, e.g. `SOCK_STREAM` (TCP) or `SOCK_DGRAM` (UDP). Setting this to `0` indicates that ANY socket addr may be returned by `getaddrinfo()`. |  
-| **ai_protocol**  | `int`                        | Preferred protocol for the returned socket addr. Setting this to `0` indicates that socket addrs w/ any protocol may be returned by `getaddrinfo()`. |  
-| **ai_addr**      | <code>sockaddr&nbsp;*</code> | |  
-| **ai_addrlen**   | `socklen_t`                  | |  
-| **ai_canonname** | <code>char&nbsp;*</code>     | |  
-| **ai_next**      | <code>addrinfo&nbsp;*</code> | Points to next `addrinfo` in linked list. |  
-
-^ When calling `getaddrinfo()`, you pass in a `hints` struct. You populate this
-struct's `ai_family`, `ai_socktype`, and `ai_protocol` fields (and also maybe
-the `ai_flags` field?) to specify crieteria that filter the sock addrs `getaddrinfo()` gives back.
 
 ----
 
