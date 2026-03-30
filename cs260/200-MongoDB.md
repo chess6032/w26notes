@@ -57,18 +57,23 @@ const config = require('./dbConfig.json'); // access credentials in separate fil
 const url = `mongodb+srv://${config.username}:${config.password}@${config.hostname}`;
 
 const client = new MongoClient(url);
-const db = client.db('rental'); // not sure what to input here ngl
-const collection = db.collection('house'); // not sure what to input here ngl
+const db = client.db('rental'); // connect to DB in cluster
+const collection = db.collection('house'); // select collection from DB
 
-// < put code here to test connection to db (see below) >
+async function main() {
 
-try {
-    // < do stuff w/ DB here >
-} catch (e) {
-    console.log(`DB (${url}) error: ${e.message}`);
-} finally {
-    await client.close();
+    // < put code here to test connection to db (see below) >
+
+    try {
+        // < do stuff w/ DB here >
+    } catch (e) {
+        console.log(`DB (${url}) error: ${e.message}`);
+    } finally {
+        await client.close();
+    }
 }
+
+main();
 ```
 
 > [!IMPORTANT]
