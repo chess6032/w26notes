@@ -980,6 +980,51 @@ The following are true for both `recv()` and `recvfrom()`:
   - By default: BLOCKS.
   - If socket is nonblocking (see fcntl(2)), -1 is returned and `errno` is set to `EAGAIN` or `EWOULDBLOCK`.
 
+## pthreads(7)
+
+The P in "pthreads" stands for POSIX. "Pthread" is short for "POSIX thread".
+
+### What's shared & what isn't
+
+- **SHARED** btwn threads:
+  - **PID**
+  - **PPID**
+  - **PGID**
+  - **Open FDs**
+  - Controlling terminal
+  - Signal "dispositions" (does that mean behavior for handling signals?)
+  - (And some other stuff that doesn't sound relevant to this class.)
+- **DISTINCT** btwn threads:
+  - **Thread ID** (`pthread_t`)
+  - **Signal mask** (see: pthread_sigmask(3))
+  - **`errno`**
+  - (And some other stuff that doesn't sound relevant to this class.)
+
+### Pthread func return vals
+
+- Most pthread funcs RETURN **`0` ON SUCCESS**, and **NON-ZERO ON FAILURE**.
+  - The vals returned on failure mean the same thing that they would if they were `errno`.
+  - Pthread funcs never fail w/ error `EINTR`. (Specified in POSIX.1-2001.)
+- Pthread funcs **DO NOT SET `errno`**.
+
+### Thread ID (TID)
+
+- A thread's TID is **returned by `pthread_create()`** (see: pthread_create(3)).
+- A thread **can obtain its TID by calling `pthread_self()`** (see: pthread_self(3)).
+- TIDs are guaranteed to be unique *only within a process*.
+- After a thread terminates, the system may reuse its TID.
+  - More specifically: after a terminated thread has been joined OR a detached thread has terminated.
+
+### Compiling on Linux
+
+For functions that use hte Pthread API (i.e., `pthread_` functions (I think)), **compile w/ `-pthread`**.
+
+### Linux implementations of Pthreads
+
+Overtime, the GNU C library has provided two threading implementations on Linux: LinuxThreads (old) and NTPL (Native POSIX threads library) (modern). 
+
+You can run `getconfg GNU_LIBPTHREAD_VERSION` to see what implementation your machine uses. The CS lab machines use NPTL, which is good because it more closely conforms to POSIX (and bc I'm pretty sure it's the implementation Dr. Deccio has been implicitly teaching us).
+
 ----
 
 # TODO:
