@@ -1062,7 +1062,7 @@ int sem_wait(sem_t *sem);
 ```
 
 - DESCRIPTION:
-  - **Decrements semaphore** at `sem`.
+  - **Decrements (locks) semaphore** at `sem`.
     - IF sem's **val > 0**, then it decrements and **returns immediately**. 
     - ^ OTHERWISE, it **blocks** until sem's val > 0&mdash;in which case it decrements & returns&mdash;OR until a sig handler interrupts the call.
 - RETURNS:
@@ -1070,6 +1070,22 @@ int sem_wait(sem_t *sem);
   - FAILURE: `-1`, and sets `errno`.
 
 ## sem_post(3)
+
+### `sem_post()`
+
+```c
+#include <semaphore.h>
+
+int sem_post(sem_t *sem)
+```
+
+- DESCRIPTION:
+  - **Increments (unlocks) sempahore** at `sem`.
+  - ^ Hence, this func also **awakens (one) waiting thread**, if there exists one.
+    - (i.e., if a thread is blocked when calling `sem_wait()` it will block until it is awoken by a thread calls `sem_post()`.)
+- RETURNS:
+  - SUCCESS: `0`
+  - FAILURE: `-1`, `errno` is set, and **value of semaphore is left unchanged**.
 
 ----
 
