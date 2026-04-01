@@ -57,7 +57,11 @@ I typically only take notes on the parts relevant to this class/the assignment w
   - [connect(2)](#connect2)
   - [send(2)](#send2)
   - [recv(2)](#recv2)
-
+- **THREADS & SEMAPHORES**
+  - [pthreads(7)](#pthreads7)
+  - [sem_init(3)](#sem_init3)
+  - [sem_post(3)](#sem_post3)
+  - [sem_wait(3)](#sem_wait3)
 
 ## `printf()`, `fprintf()`, and `write()`
 
@@ -1024,6 +1028,32 @@ For functions that use hte Pthread API (i.e., `pthread_` functions (I think)), *
 Overtime, the GNU C library has provided two threading implementations on Linux: LinuxThreads (old) and NTPL (Native POSIX threads library) (modern). 
 
 You can run `getconfg GNU_LIBPTHREAD_VERSION` to see what implementation your machine uses. The CS lab machines use NPTL, which is good because it more closely conforms to POSIX (and bc I'm pretty sure it's the implementation Dr. Deccio has been implicitly teaching us).
+
+## sem_init(3)
+
+### Description
+
+```c
+#include <semaphore.h>
+
+int sem_init(sem_t *sem, int pshared, unsigned int value)
+```
+
+- DESCRIPTION:
+  - Initializes semaphore at `sem` to `value`.
+  - `pshared` indicates whether semaphore is to be shared btwn threads of a single process (`0`), or btwn process (non-zero).
+- RETURNS:
+  - SUCCESS: `0`
+  - FAILURE: `-1`, and sets `errno`.
+
+> [!NOTE]
+> Because we're sharing semaphores between threads in this class, you should **declare your semaphore in a global (or static) variable**, so that all threads can see it.
+
+Beware: Calling `sem_init()` on an already initialized semaphore has **undefined behavior**.
+
+## sem_wait(3)
+
+## sem_post(3)
 
 ----
 
