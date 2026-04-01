@@ -1031,7 +1031,7 @@ You can run `getconfg GNU_LIBPTHREAD_VERSION` to see what implementation your ma
 
 ## sem_init(3)
 
-### Description
+### `sem_init()`
 
 ```c
 #include <semaphore.h>
@@ -1040,7 +1040,7 @@ int sem_init(sem_t *sem, int pshared, unsigned int value)
 ```
 
 - DESCRIPTION:
-  - Initializes semaphore at `sem` to `value`.
+  - **Initializes semaphore at `sem` to `value`**.
   - `pshared` indicates whether semaphore is to be shared btwn threads of a single process (`0`), or btwn process (non-zero).
 - RETURNS:
   - SUCCESS: `0`
@@ -1052,6 +1052,22 @@ int sem_init(sem_t *sem, int pshared, unsigned int value)
 Beware: Calling `sem_init()` on an already initialized semaphore has **undefined behavior**.
 
 ## sem_wait(3)
+
+### `sem_wait()`
+
+```c
+#include <semaphore.h>
+
+int sem_wait(sem_t *sem);
+```
+
+- DESCRIPTION:
+  - **Decrements semaphore** at `sem`.
+    - IF sem's **val > 0**, then it decrements and **returns immediately**. 
+    - ^ OTHERWISE, it **blocks** until sem's val > 0&mdash;in which case it decrements & returns&mdash;OR until a sig handler interrupts the call.
+- RETURNS:
+  - SUCCESS: `0`
+  - FAILURE: `-1`, and sets `errno`.
 
 ## sem_post(3)
 
