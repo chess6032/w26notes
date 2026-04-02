@@ -59,6 +59,8 @@ I typically only take notes on the parts relevant to this class/the assignment w
   - [recv(2)](#recv2)
 - **THREADS & SEMAPHORES**
   - [pthreads(7)](#pthreads7)
+  - [sem_overview(7)](#sem_overview7)
+    - [Unnamed semaphores](#unnamed-semaphores-memory-based)
   - [sem_init(3)](#sem_init3)
   - [sem_post(3)](#sem_post3)
   - [sem_wait(3)](#sem_wait3)
@@ -1028,6 +1030,34 @@ For functions that use hte Pthread API (i.e., `pthread_` functions (I think)), *
 Overtime, the GNU C library has provided two threading implementations on Linux: LinuxThreads (old) and NTPL (Native POSIX threads library) (modern). 
 
 You can run `getconfg GNU_LIBPTHREAD_VERSION` to see what implementation your machine uses. The CS lab machines use NPTL, which is good because it more closely conforms to POSIX (and bc I'm pretty sure it's the implementation Dr. Deccio has been implicitly teaching us).
+
+## sem_overview(7)
+
+- A sempahore is an int whose value is never allowed to fall below 0.
+- Two operations:
+  - Increment ([`sem_post()`](#sem_post3))
+  - Decrement ([`sem_wait()`](#sem_wait3)). (If sem's value is 0, then `sem_wait()` will block until its val becomes greater than zero.)
+
+### Named semaphores
+
+> [!NOTE]
+> I don't think we really talk about named semaphores in this class. So you can just skip past this part.
+
+- NAME FORM: <code>/<u>name</u></code>
+  - Null-terminated string.
+  - Up to 251 chars. (`NAMED_MAX`-4)
+  - NO SLASHES.
+- OPERATIONS:
+  - Created & accessed via `sem_open()`.
+  - Closed via `sem_close()` (when one process/thread is done w/ the semaphore).
+  - Removed from the system via `sem_unlink()` (when all process/threads are done w/ semaphore).
+- A named semaphore is created and accessed via `sem_open()`&mdash;then it removed from the system w/ `sem_close()`.
+
+### Unnamed semaphores (memory-based)
+
+- An unnamed semaphore is stored in memory. Instead of accessing the semaphore by name, processes/threads access that the semaphore by getting it from memory.
+  - Hence, the semaphore must be placed in a region of memory shared between multiple threads (thread-shared semaphore) or processes (process-based semaphore).
+- Before being used, an unnamed semaphore must be init'd via [`sem_init()`](#sem_init3).
 
 ## sem_init(3)
 
