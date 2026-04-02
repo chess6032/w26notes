@@ -1110,6 +1110,10 @@ Creates a new thread that starts execution by invoking `func(vargp)`.
   - SUCCESS: **`0`**, and `thread` is populated with the new thread's TID.
   - FAILURE: **non-zero error number**, and the **contents of `thread` are undefined**.
 
+### Notes
+
+- When a thread is created, it inherits its creator's sigmask.
+
 ## pthread_detach(3)
 
 ### `pthread_detach()`
@@ -1117,6 +1121,17 @@ Creates a new thread that starts execution by invoking `func(vargp)`.
 ## pthread_self(3)
 
 ### `pthread_self()`
+
+```c
+#include <pthread.h>
+
+pthread_t pthread_self()
+```
+
+- DESCRIPTION:
+  - When called by a thread, it **returns thread's TID**.
+- RETURNS:
+  - **Always succeeds**, returning the calling thread's TID.
 
 ## sem_overview(7)
 
