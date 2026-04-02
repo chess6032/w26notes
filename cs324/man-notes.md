@@ -1118,6 +1118,33 @@ Creates a new thread that starts execution by invoking `func(vargp)`.
 
 ### `pthread_detach()`
 
+```c
+#include <pthread.h>
+
+int pthread_detach(pthread_t tid)
+```
+
+- DESCRIPTION:
+  - **Detaches thread** whose TID is `tid`.
+    - I like to think of detaching as **daemonizing**.
+- RETURNS:
+  - SUCCESS: `0`.
+  - FAILURE: **Non-zero**.
+  - `EINVAL`: Thread w/ TID `tid` is not a joinable thread. (ig a thread needs to be joinable to be detached?)
+  - `ESRCH`: No thread w/ `tid` could be found.
+
+> [!TIP]
+> A thread can `pthread_detach(pthread_self())` to detach itself.
+
+### Notes
+
+- When a detached thread terminates, its resources are **automatically reaped**.
+- A detached thread **cannot be joined**.
+- Attempting to detach an already detached thread results in "unspecified behavior".
+- A detached thread will **still terminate if its process terminates**.
+- An application should call `pthread_join()` or `pthread_detach()` for ANY thread it creates (to ensure that its resources are reaped).
+  - Although, if your process doesn't join/detach a thread, that thread will still get reaped when the process terminates.
+
 ## pthread_self(3)
 
 ### `pthread_self()`
