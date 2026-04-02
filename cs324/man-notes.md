@@ -62,13 +62,15 @@ I typically only take notes on the parts relevant to this class/the assignment w
     - [connect(2)](#connect2)
     - [send(2)](#send2)
     - [recv(2)](#recv2)
-- **THREADS & SEMAPHORES**
-  - [pthreads(7)](#pthreads7)
-  - [sem_overview(7)](#sem_overview7)
-    - [Unnamed semaphores](#unnamed-semaphores-memory-based)
-  - [sem_init(3)](#sem_init3)
-  - [sem_post(3)](#sem_post3)
-  - [sem_wait(3)](#sem_wait3)
+- **CONCURRENCY**
+  - **THREADS**
+    - [pthreads(7)](#pthreads7)
+  - **SEMAPHORES**
+    - [sem_overview(7)](#sem_overview7)
+      - [Unnamed semaphores](#unnamed-semaphores-memory-based)
+    - [sem_init(3)](#sem_init3)
+    - [sem_post(3)](#sem_post3)
+    - [sem_wait(3)](#sem_wait3)
 
 ## `printf()`, `fprintf()`, and `write()`
 
@@ -1041,15 +1043,19 @@ The P in "pthreads" stands for POSIX. "Pthread" is short for "POSIX thread".
   - **PID**
   - **PPID**
   - **PGID**
-  - **Open FDs**
+  - **FD table**
+  - **Heap**
   - Controlling terminal
   - Signal "dispositions" (does that mean behavior for handling signals?)
   - (And some other stuff that doesn't sound relevant to this class.)
 - **DISTINCT** btwn threads:
   - **Thread ID** (`pthread_t`)
-  - **Signal mask** (see: pthread_sigmask(3))
+  - **Registers**
+    - Program counter, stack pointer.
+  - **Call stack**.
   - **`errno`**
-  - (And some other stuff that doesn't sound relevant to this class.)
+  - Signal mask (see: pthread_sigmask(3))
+  - (And some other stuff that doesn't sound relevant to this class. (Wtf is a "nice value"??))
 
 ### Pthread func return vals
 
@@ -1060,6 +1066,7 @@ The P in "pthreads" stands for POSIX. "Pthread" is short for "POSIX thread".
 
 ### Thread ID (TID)
 
+- Type: `pthread_t`.
 - A thread's TID is **returned by `pthread_create()`** (see: pthread_create(3)).
 - A thread **can obtain its TID by calling `pthread_self()`** (see: pthread_self(3)).
 - TIDs are guaranteed to be unique *only within a process*.
@@ -1076,12 +1083,55 @@ Overtime, the GNU C library has provided two threading implementations on Linux:
 
 You can run `getconfg GNU_LIBPTHREAD_VERSION` to see what implementation your machine uses. The CS lab machines use NPTL, which is good because it more closely conforms to POSIX (and bc I'm pretty sure it's the implementation Dr. Deccio has been implicitly teaching us).
 
+## pthread_create(3)
+
+### `pthread_create()`
+
+```c
+#include <pthread.h>
+
+int pthread_create(pthread_t *thread,
+                   const pthread_attr_t *attr,
+                   void *(*func)(void*),
+                   void *vargp
+                  )
+```
+
+Creates a new thread that starts execution by invoking `func(vargp)`.
+
+- PARAMETERS:
+  - `thread`: populated w/ new thread's TID (on success).
+  - `attr`: points to a struct that contains some attributes for the thread...or smth. (I think we usually just set this to `NULL` in this class.)
+  - `func` is a function that the created thread executes. `vargp` is passed in as its parameter.
+    - You would declare this function like this: `void* foo(void *bar) { ... }`
+    - `func`'s return & param type are `void*` so that you can pass in/return anything. In your code, you'll use casts to interpret `vargp` or `func`'s return.
+      - e.g., `*((int*) vargp)*` casts `vargp` to an int pointer and then dereferences it.
+- RETURNS:
+  - SUCCESS: **`0`**, and `thread` is populated with the new thread's TID.
+  - FAILURE: **non-zero error number**, and the **contents of `thread` are undefined**.
+
+## pthread_detach(3)
+
+### `pthread_detach()`
+
+## pthread_self(3)
+
+### `pthread_self()`
+
 ## sem_overview(7)
 
 - A sempahore is an int whose value is never allowed to fall below 0.
 - Two operations:
   - Increment ([`sem_post()`](#sem_post3))
   - Decrement ([`sem_wait()`](#sem_wait3)). (If sem's value is 0, then `sem_wait()` will block until its val becomes greater than zero.)
+
+> [!TIP]
+> Place critical code in a "sem sandwich".
+> ```c
+> sem_wait(&mutex);
+> // critical code here
+> sem_post(&mutex);
+> ```
 
 ### Named semaphores
 
