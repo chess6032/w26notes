@@ -41,12 +41,12 @@ I typically only take notes on the parts relevant to this class/the assignment w
   - [getenv(3)](#getenv3)
   - [ps(1)](#ps1)
 - **SERVER STUFF**
-  - **SOCKETS**
+  - SOCKETS
     - [memset(3)](#memset3)
     - [socket(2)](#socket2), for creating a socket.
     - [The three types of socket structs](#socket7)
     - [sockaddr(3type)](#sockaddr3type)
-  - **SOCKET TYPES**
+  - SOCKET TYPES
     - [udp(7)](#udp7)
       - [Creating UDP socket](#creating-udp-socket)
       - [Sending messages w/ UDP](#sending-messages-w-udp)
@@ -55,7 +55,7 @@ I typically only take notes on the parts relevant to this class/the assignment w
       - [Creating TCP socket](#creating-tcp-socket)
       - [Sending messages w/ TCP](#sending-messages-w-tcp)
       - [Receiving messages w/ TCP](#receiving-messages-w-tcp)
-  - **SOCKET SYSTEM CALLS**
+  - SOCKET SYSTEM CALLS
     - [getaddrinfo(3)](#getaddrinfo3)
       - [`addrinfo` struct](#addrinfo-struct)
     - [bind(2)](#bind2)
@@ -63,9 +63,13 @@ I typically only take notes on the parts relevant to this class/the assignment w
     - [send(2)](#send2)
     - [recv(2)](#recv2)
 - **CONCURRENCY**
-  - **THREADS**
+  - THREADS
     - [pthreads(7)](#pthreads7)
-  - **SEMAPHORES**
+    - [pthread_create(3)](#pthread_create3)
+      - [Ways a thread can terminate](#causes-for-thread-termination)
+    - [pthread_self(3)](#pthread_self3)
+    - [pthread_detach(3)](#pthread_detach3)
+  - SEMAPHORES
     - [sem_overview(7)](#sem_overview7)
       - [Unnamed semaphores](#unnamed-semaphores-memory-based)
     - [sem_init(3)](#sem_init3)
@@ -799,7 +803,7 @@ tcp_socket = socket(AF_INET, SOCK_STREAM, 0);
 - `bind()` &rightarrow; `listen()` &rightarrow; `accept()`
   - `bind()` sets the local addr & port.
   - `listen()` makes the socket a "listening socket"&mdash;i.e. a socket factory.
-    - (Data cannot be transmitted on listening sockets.)
+    - (Listening sockets cannot communicate w/ clients. They only accept incoming connections.)
   - `accept()`: Creates new socket for each incoming connection.
 
 #### Misc
@@ -849,7 +853,7 @@ int getaddrinfo(const char *node,
 
 ### `addrinfo` struct
 
-The `addrinfo` used by `getaddrinfo()` (and some other socket functions) has the following fields.
+The `addrinfo` used by `getaddrinfo()` has the following fields.
 
 | Name             | Type                         | Description | 
 | ---------------- | ---------------------------- | - |
@@ -1114,6 +1118,31 @@ Creates a new thread that starts execution by invoking `func(vargp)`.
 
 - When a thread is created, it inherits its creator's sigmask.
 
+### Causes for thread termination
+
+A new thread can terminate in one of the following ways:
+
+- It calls `pthread_exit()`.
+- It is cancelled (`pthread_cancel()`).
+- It returns from the top-most function in its call stack (`func`).
+- Its process terminates. (Either the main thread returns from `main()`, or any of the process's other threads call `exit()`.)
+  - A process terminating will terminate ALL its threads.
+
+## pthread_self(3)
+
+### `pthread_self()`
+
+```c
+#include <pthread.h>
+
+pthread_t pthread_self()
+```
+
+- DESCRIPTION:
+  - When called by a thread, it **returns thread's TID**.
+- RETURNS:
+  - **Always succeeds**, returning the calling thread's TID.
+
 ## pthread_detach(3)
 
 ### `pthread_detach()`
@@ -1144,21 +1173,6 @@ int pthread_detach(pthread_t tid)
 - A detached thread will **still terminate if its process terminates**.
 - An application should call `pthread_join()` or `pthread_detach()` for ANY thread it creates (to ensure that its resources are reaped).
   - Although, if your process doesn't join/detach a thread, that thread will still get reaped when the process terminates.
-
-## pthread_self(3)
-
-### `pthread_self()`
-
-```c
-#include <pthread.h>
-
-pthread_t pthread_self()
-```
-
-- DESCRIPTION:
-  - When called by a thread, it **returns thread's TID**.
-- RETURNS:
-  - **Always succeeds**, returning the calling thread's TID.
 
 ## sem_overview(7)
 
