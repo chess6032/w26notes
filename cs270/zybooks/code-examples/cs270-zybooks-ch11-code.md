@@ -1,6 +1,8 @@
 # CS 270 Ch. 11 Code Examples
 
-## 11.1.1: Filter-based feature selection in sklearn
+## 11.1
+
+### 11.1.1: Filter-based feature selection in sklearn
 
 ```py
 # Import needed packages
@@ -90,7 +92,7 @@ clf_reduced_percent = MLPClassifier(random_state=1, max_iter=1000).fit(
 clf_reduced_percent.score(X_test[features[filter_percent]], y_test)
 ```
 
-## 11.1.2: Wrapper methods in sklearn
+### 11.1.2: Wrapper methods in sklearn
 
 ```py
 # Import needed packages
@@ -198,9 +200,9 @@ X.columns[pipe_sfs["sfs"].support_]
 pipe_sfs.score(X_test, y_test)
 ```
 
-## 11.1 Challenge: Feature selection in Python
+### 11.1 Challenge: Feature selection in Python
 
-### Level 1
+#### Level 1
 
 Two researchers collected high-resolution images of 13,611 grains of seven varieties of dry beans. Using a computer vision process, 16 features of each bean were extracted.
 
@@ -251,7 +253,7 @@ features = np.array(X_train.columns)
 print(features[featureFilter])
 ```
 
-### Level 2
+#### Level 2
 
 Two researchers collected high-resolution images of 13,611 grains of seven varieties of dry beans. Using a computer vision process, 16 features of each bean were extracted.
 
@@ -304,7 +306,7 @@ beanRFECVPipe.fit(X_train, np.ravel(y_train))
 print(beanRFECVPipe.score(X_test, y_test))
 ```
 
-### Level 3
+#### Level 3
 
 Two researchers collected high-resolution images of 13,611 grains of seven varieties of dry beans. Using a computer vision process, 16 features of each bean were extracted.
 
@@ -358,4 +360,253 @@ print(X.columns[beanSFSPipe.named_steps["sfs"].support_])
 
 # Print classification score
 print(beanSFSPipe.score(X_test, y_test))
+```
+
+## 11.2
+
+### 11.2.1: PCA in sklearn
+
+```py
+# Import required libraries
+from sklearn.svm import SVC
+from sklearn.decomposition import PCA
+from sklearn.model_selection import train_test_split
+from sklearn.pipeline import Pipeline
+from sklearn.preprocessing import StandardScaler
+import matplotlib.pyplot as plt
+import numpy as np
+import pandas as pd
+```
+```py
+# Load a subset with 1000 instances of the MNIST digits dataset
+digits = pd.read_csv("https://static-resources.zybooks.com/MachineLearning/digits.csv")
+digits_sample = digits.sample(7000, random_state=246)
+```
+```py
+# Subset input and output features
+X = digits_sample.iloc[:, :-1]
+y = digits_sample[["class"]]
+```
+```py
+# Split the data into train and test sets
+X_train, X_test, y_train, y_test = train_test_split(
+    X, y, test_size=0.3, random_state=1234
+)
+```
+```py
+# Create a pipeline that fits an SVC model to training data
+clf = SVC(class_weight="balanced")
+clf.fit(X_train, np.ravel(y_train))
+```
+```py
+# Display accuracy of the classifier using the test set
+clf.score(X_test, y_test)
+```
+```py
+# Create a principal component analysis model with 64 components
+pca_64 = PCA(n_components=64)
+scaler = StandardScaler()
+pipeline_pca_64 = Pipeline(steps=[("scaler", scaler), ("pca_64", pca_64), ("clf", clf)])
+pipeline_pca_64.fit(X_train, np.ravel(y_train))
+```
+```py
+# Scree plot
+plt.plot(pca_64.explained_variance_)
+plt.xlabel("Components", size=14)
+plt.ylabel("Explained variance", size=14)
+```
+```py
+# Create a principal component analysis model with 20 components
+pca_20 = PCA(n_components=20)
+pipeline_pca_20 = Pipeline(steps=[("scaler", scaler), ("pca_20", pca_20), ("clf", clf)])
+pipeline_pca_20.fit(X_train, np.ravel(y_train))
+```
+```py
+# Display accuracy of the classifier using the 20 principal components
+pipeline_pca_20.score(X_test, y_test)
+```
+```py
+# Visualize the covariance matrix using a heatmap
+fig, ax = plt.subplots(1)
+p = plt.imshow(pca_20.get_covariance(), cmap="viridis")
+fig.colorbar(p, ax=ax)
+plt.show()
+```
+```py
+# Display covariance matrix
+np.round(pd.DataFrame(pca_20.get_covariance()), 4)
+```
+```py
+# Display the original image for an instance
+image_original = X_train.iloc[4, :].to_numpy()
+image_original = image_original.reshape([28, 28])
+plt.imshow(image_original, cmap=plt.cm.gray_r)
+```
+```py
+# Display the transformed image of the same instance
+digits_pca_reduced = pca_20.fit_transform(X_train)
+digits_pca_recovered = pca_20.inverse_transform(digits_pca_reduced)
+image_pca = digits_pca_recovered[4, :].reshape([28, 28])
+plt.imshow(image_pca, cmap=plt.cm.gray_r)
+```
+```py
+# Display the principal components
+pd.DataFrame(np.round(pca_20.components_, 4))
+```
+```py
+# Display the amount of variance explained by the principal components
+np.round(pca_20.explained_variance_, 4)
+```
+```py
+# Display the percentage variance explained by the principal components
+np.round(pca_20.explained_variance_ratio_, 4)
+```
+
+### 11.2.2: ICA in sklearn
+
+```py
+# Import required libraries
+from scipy import signal
+from sklearn.decomposition import FastICA
+from sklearn.preprocessing import StandardScaler
+import matplotlib.pyplot as plt
+import numpy as np
+import pandas as pd
+```
+```py
+# Randomly generate original sources
+np.random.seed(123)
+
+samples = 2000
+time = np.linspace(0, 10, samples)
+
+signal_1 = np.cos(2 * time)
+signal_2 = signal.sawtooth(3 * np.pi * time)
+
+S = np.c_[signal_1, signal_2]
+```
+```py
+# Specify mixing matrix and compute mixed signals
+A = np.array([[0.5, 3], [0.25, 2]])
+X = np.dot(S, A.T)
+```
+```py
+# Create a FastICA model
+ica = FastICA(n_components=2)
+```
+```py
+# Fit and transform the mixed signals using the FastICA model
+S_ = ica.fit_transform(X)
+```
+```py
+# Graph the original sources, mixed, signals, estimated sources
+graphs = [S, X, S_]
+titles = [
+    "Original sources",
+    "Mixed signals",
+    "Estimated sources",
+]
+colors = ["lightskyblue", "orange"]
+
+for ii, (graph, title) in enumerate(zip(graphs, titles), 1):
+    plt.subplot(4, 1, ii)
+    plt.title(title)
+    for sig, color in zip(graph.T, colors):
+        plt.plot(sig, color=color)
+
+plt.tight_layout()
+```
+```py
+# Display the estimated mixing matrix
+ica.mixing_
+```
+```py
+# Display the unmixing matrix
+ica.components_
+```
+```py
+# Display the whitening matrix
+ica.whitening_
+```
+
+### 11.2.3: FA in sklearn
+
+```py
+# Import required libraries
+from sklearn.decomposition import FactorAnalysis
+from factor_analyzer import FactorAnalyzer
+from sklearn.svm import SVC
+from sklearn.preprocessing import StandardScaler
+from sklearn.model_selection import train_test_split
+from sklearn.pipeline import Pipeline
+import pandas as pd
+import numpy as np
+import seaborn as sns
+```
+```py
+# Load the airline passenger satisfcation dataset
+passengers = pd.read_csv("passengers.csv")
+```
+```py
+# Subset input and output features
+X = passengers.iloc[:, :-1]
+y = passengers[["Satisfied"]]
+```
+```py
+# Display columns
+X.columns
+```
+```py
+# Display first five instances
+X.head()
+```
+```py
+# Split the data into train and test sets
+X_train, X_test, y_train, y_test = train_test_split(
+    X, y, test_size=0.2, random_state=123
+)
+```
+```py
+# Create data pipeline with the scaler, factor analysis model, and support vector classifier
+scaler = StandardScaler()
+factor_analysis = FactorAnalysis(rotation="varimax", n_components=6, random_state=123)
+clf = SVC(random_state=123)
+pipeline_factor_analysis = Pipeline(
+    steps=[("scaler", scaler), ("factor_analysis", factor_analysis), ("clf", clf)]
+)
+```
+```py
+# Fit the data pipeline to the training set
+pipeline_factor_analysis.fit(X_train, np.ravel(y_train))
+```
+```py
+# Display accuracy of the classifier using the test set
+pipeline_factor_analysis.score(X_test, y_test)
+```
+```py
+# Create another data pipeline using the FactorAnalyzer() function
+factor_analyzer = FactorAnalyzer(rotation="varimax", n_factors=6)
+pipeline_factor_analyzer = Pipeline(
+    steps=[("scaler", scaler), ("factor_analyzer", factor_analyzer), ("clf", clf)]
+)
+```
+```py
+# Fit the data pipeline that uses FactorAnalyzer to the training set
+pipeline_factor_analyzer.fit(X_train, np.ravel(y_train))
+```
+```py
+# Display accuracy of the classifier using the test set
+pipeline_factor_analyzer.score(X_test, y_test)
+```
+```py
+# Create a matrix of factor loadings
+loadings = pd.DataFrame(
+    factor_analyzer.loadings_,
+    columns=["FA1", "FA2", "FA3", "FA4", "FA5", "FA6"],
+    index=X.columns,
+)
+```
+```py
+# Display the factor loadings
+np.round(loadings, 4)
 ```
