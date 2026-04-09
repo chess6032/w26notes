@@ -783,3 +783,258 @@ varianceNoise = beanFA.noise_variance_
 print(varianceNoise[:100])
 print("Accuracy is:", faPipeline.score(X_test, y_test))
 ```
+
+## 11.3
+
+### 11.3.1: MDS in sklearn
+
+```py
+# Load the necessary libraries
+import matplotlib.pyplot as plt
+import mpl_toolkits.mplot3d
+import pandas as pd
+import numpy as np
+from sklearn.pipeline import Pipeline
+from sklearn.decomposition import PCA
+from sklearn.model_selection import train_test_split
+from sklearn.manifold import MDS
+from sklearn.preprocessing import MinMaxScaler
+```
+```py
+# Load a subset with 1500 instances of the MNIST digits dataset
+digits = pd.read_csv("https://static-resources.zybooks.com/MachineLearning/digits.csv")
+digits_sample = digits.sample(1500, random_state=1234)
+```
+```py
+# Subset input and output features
+X = digits_sample.iloc[:, :-1]
+y = digits_sample[["class"]]
+```
+```py
+# Split the data into train and test sets
+X_train, X_test, y_train, y_test = train_test_split(
+    X, y, test_size=0.2, random_state=123
+)
+```
+```py
+# Build a pipeline that fits an PCA model to the scaled training data
+scaler = MinMaxScaler()
+pca = PCA(n_components=2, random_state=123)
+pipeline_pca = Pipeline(steps=[("scaler", scaler), ("pca", pca)])
+X_transformed = pipeline_pca.fit_transform(X_train, np.ravel(y_train))
+X_transformed
+```
+```py
+# Plot the PCA mapping
+fig, plot = plt.subplots()
+scatter = plot.scatter(
+    x=X_transformed[:, 0], y=X_transformed[:, 1], c=np.ravel(y_train), cmap="viridis"
+)
+plt.legend(
+    bbox_to_anchor=(1, 1),
+    handles=scatter.legend_elements()[0],
+    labels=scatter.legend_elements()[1],
+)
+```
+```py
+# Build a pipeline that fits an MDS model to the scaled training data
+mds = MDS(n_components=2, random_state=1234)
+pipeline_mds = Pipeline(steps=[("scaler", scaler), ("mds", mds)])
+X_transform_mds = pipeline_mds.fit_transform(X_train)
+```
+```py
+# Plot the MDS mapping
+fig, plot = plt.subplots()
+scatter = plot.scatter(
+    X_transform_mds[:, 0], X_transform_mds[:, 1], c=np.ravel(y_train), cmap="viridis"
+)
+plt.legend(
+    bbox_to_anchor=(1, 1),
+    handles=scatter.legend_elements()[0],
+    labels=scatter.legend_elements()[1],
+)
+```
+```py
+# Display the data points in lower-dimensional space
+pd.DataFrame(mds.embedding_)
+```
+```py
+# Display the dissimilarity matrix in the higher-dimensional space
+pd.DataFrame(mds.dissimilarity_matrix_)
+```
+```py
+# Display the raw stress
+print(mds.stress_)
+```
+```py
+# Display the number of iterations that give the best stress
+mds.n_iter_
+```
+
+### 11.3.2: Isomap in sklearn
+
+```py
+# Load the necessary libraries
+import matplotlib.pyplot as plt
+import mpl_toolkits.mplot3d
+import pandas as pd
+import numpy as np
+from sklearn.pipeline import Pipeline
+from sklearn.decomposition import PCA
+from sklearn.model_selection import train_test_split
+from sklearn.manifold import Isomap
+from sklearn.preprocessing import MinMaxScaler
+```
+```py
+# Load a subset with 1500 instances of the MNIST digits dataset
+digits = pd.read_csv("https://static-resources.zybooks.com/MachineLearning/digits.csv")
+digits_sample = digits.sample(1500, random_state=1234)
+```
+```py
+# Subset input and output features
+X = digits_sample.iloc[:, :-1]
+y = digits_sample[["class"]]
+```
+```py
+# Split the data into train and test sets
+X_train, X_test, y_train, y_test = train_test_split(
+    X, y, test_size=0.2, random_state=123
+)
+```
+```py
+# Build a pipeline that fits an PCA model to the scaled (normalized) training data
+scaler = MinMaxScaler()
+pca = PCA(n_components=2, random_state=123)
+pipeline_pca = Pipeline(steps=[("scaler", scaler), ("pca", pca)])
+X_transformed = pipeline_pca.fit_transform(X_train, np.ravel(y_train))
+```
+```py
+# Plot the PCA mapping
+fig, plot = plt.subplots()
+scatter = plot.scatter(
+    X_transformed[:, 0], X_transformed[:, 1], c=np.ravel(y_train), cmap="viridis"
+)
+plt.legend(
+    bbox_to_anchor=(1, 1),
+    handles=scatter.legend_elements()[0],
+    labels=scatter.legend_elements()[1],
+)
+```
+```py
+# Build a pipeline that fits an Isomap model to the scaled (normalized) training data
+isomap = Isomap(n_components=2, n_neighbors=25)
+pipeline_isomap = Pipeline(steps=[("scaler", scaler), ("isomap", isomap)])
+X_transform_isomap = pipeline_isomap.fit_transform(X_train)
+```
+```py
+# Plot the Isomap mapping
+fig, plot = plt.subplots()
+scatter = plot.scatter(
+    X_transform_isomap[:, 0],
+    X_transform_isomap[:, 1],
+    c=np.ravel(y_train),
+    cmap="viridis",
+)
+plt.legend(
+    bbox_to_anchor=(1, 1),
+    handles=scatter.legend_elements()[0],
+    labels=scatter.legend_elements()[1],
+)
+```
+```py
+# Display the data points in lower-dimensional space
+pd.DataFrame(isomap.embedding_)
+```
+```py
+# Display the KernelPCA object used in the mapping
+isomap.kernel_pca_
+```
+```py
+# Display the geodesic distances in higher-dimensional space
+isomap.dist_matrix_
+```
+```py
+# Display the nearest neighbors object used in the mapping
+isomap.nbrs_
+```
+
+### 11.3.3: t-SNE in sklearn
+
+```py
+# Load the necessary libraries
+import matplotlib.pyplot as plt
+import mpl_toolkits.mplot3d
+import pandas as pd
+import numpy as np
+from sklearn.pipeline import Pipeline
+from sklearn.decomposition import PCA
+from sklearn.model_selection import train_test_split
+from sklearn.manifold import TSNE
+from sklearn.preprocessing import MinMaxScaler
+```
+```py
+# Load a subset with 1500 instances of the MNIST digits dataset
+digits = pd.read_csv("https://static-resources.zybooks.com/MachineLearning/digits.csv")
+digits_sample = digits.sample(1500, random_state=1234)
+```
+```py
+# Subset input and output features
+X = digits_sample.iloc[:, :-1]
+y = digits_sample[["class"]]
+```
+```py
+# Split the data into train and test sets
+X_train, X_test, y_train, y_test = train_test_split(
+    X, y, test_size=0.2, random_state=123
+)
+```
+```py
+# Build a pipeline that fits an PCA model to the scaled (normalized) training data
+scaler = MinMaxScaler()
+pca = PCA(n_components=2, random_state=123)
+pipeline_pca = Pipeline(steps=[("scaler", scaler), ("pca", pca)])
+X_transformed = pipeline_pca.fit_transform(X_train, np.ravel(y_train))
+```
+```py
+# Plot the PCA mapping
+fig, plot = plt.subplots()
+scatter = plot.scatter(
+    X_transformed[:, 0], X_transformed[:, 1], c=np.ravel(y_train), cmap="viridis"
+)
+plt.legend(
+    bbox_to_anchor=(1, 1),
+    handles=scatter.legend_elements()[0],
+    labels=scatter.legend_elements()[1],
+)
+```
+```py
+# Build a pipeline that fits a t-SNE model to the scaled (normalized) training data
+tsne = TSNE(n_components=2, perplexity=45.0, random_state=123)
+pipeline_tsne = Pipeline(steps=[("scaler", scaler), ("tsne", tsne)])
+X_transform_tsne = pipeline_tsne.fit_transform(X_train)
+```
+```py
+# Plot the t-SNE model mapping
+X_transform_tsne = tsne.fit_transform(X_train)
+fig, plot = plt.subplots()
+scatter = plot.scatter(
+    X_transform_tsne[:, 0], X_transform_tsne[:, 1], c=np.ravel(y_train), cmap="viridis"
+)
+plt.legend(
+    bbox_to_anchor=(1, 1),
+    handles=scatter.legend_elements()[0],
+    labels=scatter.legend_elements()[1],
+)
+```
+```py
+# Display the data points in lower-dimensional space
+pd.DataFrame(tsne.embedding_)
+```
+```py
+# Display the KL divergence after optimization
+tsne.kl_divergence_
+```
+```py
+# Display the effective learning rate
+tsne.learning_rate
+```

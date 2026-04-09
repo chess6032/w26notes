@@ -235,3 +235,119 @@ X_\text{centered} = X - \bar X
     - Quartimax, which maximizes the sum of loadings raised to the 4th power.
     - Promax, which allows features to be correlated.
 5. **Obtain factor loadings**. Most software packages that perform factor analysis include factor loadings in their output.
+
+
+# 11.3: Feature extraction using non-linear techniques
+
+## Non-linear feature extraction
+
+- (IRL, most scenarios invovle nonlinear data, e.g. image processing & genomics.)
+- ***Nonlinear feature extraction*** techniques transform data into a lower-dimensional representation while **preserving underling structure & relationships w/in the data**.
+  - Since these techniques do not assume a linear relationship btwn ftrs, nonlinear techniques **capture more complex data patterns**.
+- Commonly used nonlinear feature extraction techniques include:
+  - Multidimensional scaling (MDS)
+  - Isometric mapping (Isomap)
+  - $t$-distributed stochastic neighbor embedding (t-SNE)
+
+### Multidimensional scaling (MDS)
+
+Follows similar process as PCA, but w/ some distinct differences.
+
+- ***MDS*** estimates a **dissimilarity matrix** to map data of a higher-dimensional space to a lower-dimensional space.
+  - Each instance is represented as a point in the data's original higher-dimensional space; distance btwn each pairs of points represents the similarity btwn those two instances.
+    - Instances farther apart are considered dissimilar.
+  - ^ Goal: **Find a transformation into a lower-dimensional space that preserves the dissimilarity** of the data when it was in its original, higher-dimensional space.
+    - **If dissimilarity is similar after transformation, then the transformed data still well-represents** the original data.
+- The dissimilarity mtx is used to **minimize *stress***, which is the **diff. btwn the dissimilarity** observed in the data's original, higher-dimensional space and the lower-dimensional space you transform it to.
+  - A (normalized) stress value **closer to 0 indicates BETTER fit**, meaning dissimilarity was preserved when transforming the data from higher- to lower-dimensional space, while a (normalized) value **closer to 1 indicates WORSE fit**, i.e. the lower-dimensional space has a less accurate representation of the original data.
+- MDS can handle:
+  - **linear AND nonlinear** data
+  - **numeric AND categorical** data types
+- ADVANTAGES:
+  - Ease of data visualization
+  - Handles multiple data types
+  - Simplicity
+- DISADVANTAGES:
+  - Sensitivity to input features
+  - Computationally comlex
+  - Difficulty in handling missing data
+
+#### Calculating stress
+
+Common stress function:
+
+```math
+\text{stress} = \sum_{i<j} (d_{ij} - \hat d_{ij})^2
+```
+
+```math
+\text{normalized stress} = \sqrt{\frac {\text{stress}} {\sum_{i<j} d^2_{ij}}}
+```
+
+where&mdash;
+
+- $d_{ij}$ is distance in the higher-dimensional space (i.e., pre-transformed).
+- $\hat d_{ij}$ is distance in the lower-dimensional space (i.e., transformed).
+
+#### MDS process
+
+Bro I am SKIPPING ts bc it makes NO sense anyway and it takes too long to write down.
+
+### Isometric mapping (Isomap)
+
+- ***Isomap*** reduces demnsionality in such a way that it **preserves geodesic relationships between instances**.
+  - ***geodesic distance***: shortest distance btwn two points on *curved surfaces*.
+  - Hence, **Isomap extends MDS to non-Euclidean distance**.
+- ^ More specifically: **EUCLIDEAN distances between instances in the LOWER-dimensional space resemble the GEODESIC distances in the HIGHER-dimensional space**. 
+  <!-- - So: When your data is in its original space, you identify some surface that all the points lie on. When isomap transforms your data into a lower-dimensional space, the new Euclidean distances between the points are similar (or maybe proportional? idk) to the non-euclidean distanasdjf pasdif pasiodufp asfip   -->
+- Isomap **approximates geodesic dists. by using the Euclidean dists. btwn nearby points**; it then "uses these approximations in multidimensional scaling."
+- ADVANTAGES:
+  - Preservation of nonlinear relationships
+  - Preservation of global structures
+  - Robust to noise
+- DISADVANTAGES:
+  - Sensitivity to hyperparams
+  - Computationally intensive
+  - Assumption of continuity
+
+#### Isomap process
+
+Skipping ts.
+
+### t-SNE
+
+(t-SNE is short for $t$-distributed Stochastic Neighbor Embedding, but no one cares ab that.)
+
+- ***t-SNE***  uses **probabilities to represent pairwise similarities** btwn instances.
+  - Similiarity in the ORIGINAL space, $p_{ij}$, is defined using a normal distribution centered at point $i$, w/ a variance of $\sigma_i$s, normalized over all other data points $j$.
+  - Similarity in the LOWER-dimensional space, $q_{ij}$, is defined using the "t-distribution w/ one degree of freeddom centered at lower-dimensional coordinates $y_i$". (WHAT?)
+  - ^ See formulas below
+- t-SNE's main goal: **find a set of lower-dimensional coordinates $y_1, \dots, y_n$ that minimizes divergenze btwn the distributions $P$ and $Q$.**
+  - For t-SNE, we use ***Kullback-Leibler divergence (KL divergence)***, which measures how one probability distribution diverges from a second, expected prob distribution. (See formula below.)
+  - ^ KL ranges from $0$ to $\infty$. If $P$ & $Q$ are the exact same distribution, then $\text{KL}(P||Q) = 0$.
+- t-SNE is controlled with a ***perplexity* hyperparam**, which controls the **balance btwn preserving data's local vs. global structure**.
+  - HIGHER perplexity encourages model to consider a larger number of nearest neighbors when constructing the prob distr in  the higher-dimensional space.
+- ADVANTAGES:
+  - Handles nonlinear data well.
+  - Preserves global AND local structures.
+  - Robust to noise.
+- DISADVANTAGES:
+  - Produces less interpretable mappings.
+  - Requires large amts of computer processing power and memory.
+  - Very sensitive to its perplexity hyperparam.
+
+#### Formulas
+
+Here are the formulas for similarity in the original, higher-dimensional space ($p_{ij}$); similarity in the lower-dimensional space ($q_{ij}$); and KL divergence:
+
+```math
+p_{ij} = \frac {\exp{(-|x_i - x_j|^2 / 2\sigma^2_i)}} {\sum_{k \ne i} \exp(-|x_i - x_k|^2 / 2\sigma^2_i)}
+```
+
+```math
+q_{ij} = \frac {(1 + |y_i - y_j|^2)^{-1}} {\sum_{k \ne i} (1 + |y_i - y_k|^2)^{-1}}
+```
+
+```math
+\text{KL}(P||Q) = \sum_i \sum_j p_{ij} \log \bigg(\frac {p_{ij}} {q_{ij}}\bigg)
+```
