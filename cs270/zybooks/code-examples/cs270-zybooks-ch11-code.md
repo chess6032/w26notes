@@ -1194,3 +1194,54 @@ print("t-SNE KL Divergence:", tsneParkinsons.kl_divergence_)
 print("Transformed Data:")
 print(pd.DataFrame(tsneParkinsonsTransform))
 ```
+
+## 11.5 LAB: Feature processing w/ PCA
+
+The forestfires.csv dataset contains meteorological information and the area burned for 517 forest fires that occurred in Montesinho Natural Park in Portugal. Use principal component analysis to reduce the dimensions of the input data from 10 to a user-defined number.
+
+- Initialize a MinMaxScaler and a PCA model using scikit-learn with a user-input number of components.
+- Scale the data and fit a principal component analysis model.
+- Display the principal components, the amount of variance explained by the principal components, and the percentage variance explained by the principal components.
+
+
+```py
+# Import needed packages
+import numpy as np
+import pandas as pd
+from sklearn.decomposition import PCA
+from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import MinMaxScaler
+from sklearn.pipeline import Pipeline
+
+# Specify number of columns to be displayed 
+pd.set_option('display.max_columns', 8)
+
+fires = pd.read_csv("forestfires.csv")
+
+# Input the number of principal components
+nComp = int(input())
+
+# Define input and output features
+X = fires.drop(["month", "day", "area"], axis=1)
+y = fires[["area"]]
+
+# Initialize a MinMaxScaler and a PCA model with a user-input number of components
+scaler = MinMaxScaler()
+pca = PCA(n_components=nComp, random_state=42)
+
+# Scale the data and fit a principal component analysis model 
+pipeline = Pipeline(steps=[("scaler", scaler), ("pca", pca)])
+X_pca = pipeline.fit_transform(X)
+
+# Display the principal components
+pcaComp = pca.components_
+print("Components:\n", pd.DataFrame(np.round(pcaComp,4)))
+
+# Display the amount of variance explained by the principal components
+expVar = pca.explained_variance_
+print("Amount of explained variance:\n", np.round(expVar,4))
+
+# Display the percentage variance explained by the principal components
+percExpVar = pca.explained_variance_ratio_
+print("Percent explained variance:\n", np.round(percExpVar,4))
+```
