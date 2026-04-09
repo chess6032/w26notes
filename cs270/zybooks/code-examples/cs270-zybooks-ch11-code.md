@@ -610,3 +610,176 @@ loadings = pd.DataFrame(
 # Display the factor loadings
 np.round(loadings, 4)
 ```
+
+### 11.2 Challenge activity: Feature extraction using linear techniques in Python
+
+#### Level 1 (PCA)
+
+Two researchers collected high-resolution images of 13,611 grains of seven varieties of dry beans. Using a computer vision process, 16 features of each bean were extracted.
+
+- Create a principal component analysis model using the `PCA()` function with 6 components and `random_state=39`.
+- Create a data pipeline with a scaler, pca model, and a support vector classifier.
+- Fit the model at the end of the pipeline using the training set.
+- Get the principal components.
+
+The code provided contains all imports, loads the dataset, creates dataframes with the input and output features, splits the data into test and train sets, initializes a support vector classifier, initializes a scaler, and prints the accuracy of the classifier using the 6 principal components and the principal components.
+
+```py
+# Import packages and functions
+import warnings
+warnings.simplefilter("ignore")
+from sklearn.svm import SVC
+from sklearn.decomposition import PCA, SparsePCA
+from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import StandardScaler
+from sklearn.pipeline import Pipeline
+import numpy as np
+import pandas as pd
+
+# Load the dry beans dataset
+bean = pd.read_csv("Dry_Bean_Dataset.csv")
+
+# Define input and output features
+X = bean.drop(["Class"], axis=1)
+y = bean[["Class"]]
+
+# Split the data into train and test sets
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=123)
+
+# Create a support vector classifier
+clf = SVC(gamma="scale", class_weight="balanced", C=50, random_state=123)
+
+# Create a scaler to standardize input features
+scaler = StandardScaler()
+
+# -------------------------------
+# Create a principal component analysis model using the PCA() function with 6 
+# components and random_state=39
+beanPCA = PCA(n_components=6, random_state=39)
+
+# Create a data pipeline with a scaler, pca model, and a support vector classifier
+pipelineBean = Pipeline(steps=[("scaler", scaler), ("pca", beanPCA), ("clf", clf)])
+
+# Fit the model at the end of the pipeline using the training set
+pipelineBean.fit(X_train, y_train)
+
+# Get the principal components
+beanComponents = beanPCA.components_
+# -------------------------------
+
+# Print the principal components and accuracy
+print(beanComponents)
+print("Accuracy is:", pipelineBean.score(X_test, y_test))
+```
+
+#### Level 2 (ICA)
+
+- Create an ICA model using the `FastICA()` function with 3 components, `algorithm="deflation"`, and `whiten="unit-variance"`.
+- Fit and transform the mixed signals using the FastICA model.
+- Get the estimated mixing matrix.
+
+The code provided contains all imports, generates the original sources, creates a mixing matrix, computes the mixed signals, and prints the first five elements of the estimated source signal and the estimated mixing matrix.
+
+```py
+# Import packages and functions
+from scipy import signal
+from sklearn.decomposition import FastICA
+from sklearn.preprocessing import StandardScaler
+import matplotlib.pyplot as plt
+import numpy as np
+import pandas as pd
+
+# Randomly generate original sources
+np.random.seed(19)
+
+samples = 2000
+time = np.linspace(0, 10, samples)
+
+signal_1 = np.cos(time)
+signal_2 = signal.square(3*np.pi*time) 
+signal_3 = signal.sawtooth(2*np.pi*time) 
+
+S = np.c_[signal_1, signal_2, signal_3]
+
+# Specify mixing matrix and compute mixed signals
+A = np.array([[2, 0.4, 1], [3, 0.1, 0.5], [0.4, 2, 3]])
+X = np.dot(S, A.T)
+
+# vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
+# Create a FastICA model with three components, algorithm="deflation", and whiten="unit-variance"
+independentCA = FastICA(n_components=3, algorithm="deflation", whiten="unit-variance")
+
+# Fit and transform the mixed signals using the FastICA model
+estimatedS = independentCA.fit_transform(X)
+# ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+# Print the first five elements of the estimated source signal
+print(estimatedS[0:5])
+
+# vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
+# Get the estimated mixing matrix
+mixingEstimate = independentCA.mixing_
+# ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+# Print estimated mixing matrix
+print(mixingEstimate)
+```
+
+#### Level 3 (FA)
+
+Two researchers collected high-resolution images of 13,611 grains of seven varieties of dry beans. Using a computer vision process, 16 features of each bean were extracted.
+
+- Create a factor analysis model using the `FactorAnalysis()` function with `rotation="varimax"`, 4 components, and `random_state=66`.
+- Create a data pipeline with a scaler, factor analysis model, and a support vector classifier.
+- Fit the model at the end of the pipeline using the training set.
+- Get the noise variance for each feature.
+
+The code provided contains all imports, loads the dataset, creates dataframes with the input and output features, splits the data into test and train sets, initializes a support vector classifier, initializes a scaler, and prints the accuracy of the classifier and the noise variance for each feature.
+
+```py
+# Import packages and functions
+import warnings
+warnings.simplefilter("ignore")
+from sklearn.svm import SVC
+from sklearn.decomposition import FactorAnalysis
+from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import StandardScaler
+from sklearn.pipeline import Pipeline
+import numpy as np
+import pandas as pd
+
+# Load the dry beans dataset
+bean = pd.read_csv("Dry_Bean_Dataset.csv")
+
+# Define input and output features
+X = bean.drop(["Class"], axis=1)
+y = bean[["Class"]]
+
+# Split the data into train and test sets
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=123)
+
+# Create a support vector classifier
+clf = SVC(gamma="scale", class_weight="balanced", C=50, random_state=123)
+
+# Create a scaler to standardize input features
+scaler = StandardScaler()
+
+# ------------------------------------
+# Create a factor analysis model using the FactorAnalysis() function with 4 
+# components, rotation="varimax" and random_state=66
+beanFA = FactorAnalysis(rotation="varimax", n_components=4, random_state=66)
+
+# Create a data pipeline with a scaler, factor analysis model, and a support vector classifier
+faPipeline = Pipeline(steps=[("scaler", scaler), ("factor_analyzer", beanFA), ("clf", clf)])
+
+# Fit the model at the end of the pipeline using the training set
+faPipeline.fit(X_train, y_train)
+
+# Get the noise variance for each feature
+varianceNoise = beanFA.noise_variance_
+# ------------------------------------
+
+# Print the noise variance for each feature and accuracy
+print(varianceNoise[:100])
+print("Accuracy is:", faPipeline.score(X_test, y_test))
+```
