@@ -1038,3 +1038,159 @@ tsne.kl_divergence_
 # Display the effective learning rate
 tsne.learning_rate
 ```
+
+### 11.3 Challenge activity: Feature extraction using non-linear techniques in Python
+
+#### Level 1 (MDS)
+
+This dataset contains biomedical voice measurements from 28 people with Parkinson's disease and eight without. The dataset consists of 24 input features of different types of voice measurements and one output feature indicating the existence of Parkinson's.
+
+- Initialize a multidimensional scaling model in `scikit-learn` with six dimensions in the lower dimensional space and `random_state=327`.
+- Build a pipeline to scale (normalize) the data and fit the MDS model to the scaled training data.
+- Apply the pipeline.
+
+The code provided contains all imports, loads the dataset, creates a dataframe with the input features, splits the data into test and train sets, and prints the raw stress.
+
+```py
+# Import packages and functions
+import pandas as pd
+import numpy as np
+from sklearn.preprocessing import MinMaxScaler
+from sklearn.model_selection import train_test_split
+from sklearn.pipeline import Pipeline
+from sklearn.manifold import MDS
+
+# Load the Parkinson's dataset
+parkinsons = pd.read_csv("Parkinsons.csv")
+
+# Define input features
+X = parkinsons.drop(["name", "status"], axis=1)
+y = parkinsons[["status"]]
+
+# Split the data into train and test sets
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=123)
+
+# vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
+# Initialize a multidimensional scaling model with six dimensions in the lower 
+# dimensional space and random_state=327
+parkinsonsMDS = MDS(n_components=6, random_state=327) 
+# ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+# Build a pipeline to scale (normalize) the data and fit the MDS model to the scaled training data
+scaler = MinMaxScaler()
+# vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
+pipeline_mds = Pipeline(steps=[("scaler", scaler), ("mds", parkinsonsMDS)])
+
+# Apply the pipeline
+parkinsonsMDSTransform = pipeline_mds.fit_transform(X_train)
+# ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+# Display the raw stress
+print(parkinsonsMDS.stress_)
+```
+
+#### Level 2 (Isomap)
+
+This dataset contains biomedical voice measurements from 28 people with Parkinson's disease and eight without. The dataset consists of 24 input features of different types of voice measurements and one output feature indicating the existence of Parkinson's.
+
+- Initialize an isometric mapping model in `scikit-learn` with seven dimensions in the lower dimensional space and `n_neighbors=9`.
+- Build a pipeline to scale (normalize) the data and fit the isomap model to the scaled training data.
+- Apply the pipeline.
+
+The code provided contains all imports, loads the dataset, creates a dataframe with the input features, splits the data into test and train sets, and prints the data points in lower-dimensional space.
+
+```py
+# Import packages and functions
+import pandas as pd
+import numpy as np
+from sklearn.preprocessing import MinMaxScaler
+from sklearn.model_selection import train_test_split
+from sklearn.pipeline import Pipeline
+from sklearn.manifold import Isomap
+import warnings
+
+# Ignore all warnings
+warnings.filterwarnings("ignore")
+
+# Load the Parkinson's dataset
+parkinsons = pd.read_csv("Parkinsons.csv")
+
+# Define input features
+X = parkinsons.drop(["name", "status"], axis=1)
+y = parkinsons[["status"]]
+
+# Split the data into train and test sets
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=123)
+
+# vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
+# Initialize an isometric mapping model with seven dimensions in the lower 
+# dimensional space and n_neighbors=9
+parkinsonsIsomap = Isomap(n_components=7, n_neighbors=9)
+# ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+# Build a pipeline to scale (normalize) the data and fit the isomap model to the scaled training data
+scaler = MinMaxScaler()
+# vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
+pipeline_isomap = Pipeline(steps=[("scaler", scaler), ("isomap", parkinsonsIsomap)])
+
+# Apply the pipeline
+parkinsonsIsomapTransform = pipeline_isomap.fit_transform(X_train)
+# ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+# Display the data points in lower-dimensional space
+print(pd.DataFrame(parkinsonsIsomap.embedding_))
+```
+
+#### Level 3 (t-SNE)
+
+This dataset contains biomedical voice measurements from 28 people with Parkinson's disease and eight without. The dataset consists of 24 input features of different types of voice measurements and one output feature indicating the existence of Parkinson's.
+
+- Initialize a t-distributed Stochastic Neighbor Embedding model in `scikit-learn` with four dimensions in the lower dimensional space, `perplexity=46`, `random_state=283`, and `method="exact"`.
+- Build a pipeline to scale (normalize) the data and fit the t-SNE model to the scaled training data.
+- Apply the pipeline.
+
+The code provided contains all imports, loads the dataset, creates a dataframe with the input features, splits the data into test and train sets, and prints the KL divergence.
+
+```py
+# Import packages and functions
+import pandas as pd
+import numpy as np
+from sklearn.preprocessing import MinMaxScaler
+from sklearn.model_selection import train_test_split
+from sklearn.pipeline import Pipeline
+from sklearn.manifold import TSNE
+import warnings
+
+# Suppress FutureWarnings
+warnings.simplefilter(action="ignore", category=FutureWarning)
+
+# Load the Parkinson's dataset
+parkinsons = pd.read_csv("Parkinsons.csv")
+
+# Define input features
+X = parkinsons.drop(["name", "status"], axis=1)
+y = parkinsons[["status"]]
+
+# Split the data into train and test sets
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=123)
+
+# vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
+# Initialize a t-SNE model with four dimensions in the lower dimensional space, 
+# perplexity=46, random_state=283, and method="exact"
+tsneParkinsons = TSNE(n_components=4, perplexity=46, method="exact", random_state=283)
+# ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+# Build a pipeline to scale (normalize) the data and fit the t-SNE model to the scaled training data
+scaler = MinMaxScaler()
+# vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
+pipeline_tsne = Pipeline(steps=[("scaler", scaler), ("tsne", tsneParkinsons)])
+
+# Apply the pipeline
+tsneParkinsonsTransform = pipeline_tsne.fit_transform(X_train)
+# ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+# Display the t-SNE KL Divergence and data points in lower-dimensional space
+print("t-SNE KL Divergence:", tsneParkinsons.kl_divergence_)
+print("Transformed Data:")
+print(pd.DataFrame(tsneParkinsonsTransform))
+```
